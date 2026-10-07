@@ -1,90 +1,49 @@
 import streamlit as st
+import json
+import os
 
-# Configuration de la page
-st.set_page_config(
-    page_title="AEGIS-CORE | Interface",
-    page_icon="⚡",
-    layout="centered"
-)
+# Configuration de la page et du style tactique
+st.set_page_config(page_title="AEGIS-CORE OS", page_icon="🛡️", layout="wide")
 
-# Style CSS personnalisé : Noir profond et Or épuré
-st.markdown("""
-    <style>
-    /* Fond global de l'application en noir profond */
-    .stApp {
-        background-color: #0B0B0C;
-        color: #E0E0E0;
-    }
-    
-    /* En-tête du système */
-    .header-title {
-        font-family: 'Helvetica Neue', sans-serif;
-        color: #D4AF37;
-        text-align: center;
-        font-size: 2.5rem;
-        font-weight: 700;
-        letter-spacing: 2px;
-        margin-bottom: 0px;
-    }
-    .header-subtitle {
-        text-align: center;
-        color: #888888;
-        font-size: 0.9rem;
-        margin-bottom: 30px;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
+st.title("🛡️ AEGIS-CORE // INTERFACE OPÉRATIONNELLE")
+st.sidebar.title("Paramètres du Système")
 
-    /* Style des bulles de chat utilisateur */
-    .stChatMessage[data-testid="stChatMessage-user"] {
-        background-color: #161618;
-        border: 1px solid #333333;
-        border-radius: 8px;
-    }
+# 1. Chargement de la base de connaissances (les profils, la mémoire)
+def charger_base_connaissances():
+    if os.path.exists("base_de_connaissances.json"):
+        with open("base_de_connaissances.json", "r", encoding="utf-8") as f:
+            return json.load(f)
+    return {}
 
-    /* Style des bulles de chat de l'IA (accents dorés) */
-    .stChatMessage[data-testid="stChatMessage-assistant"] {
-        background-color: #121214;
-        border: 1px solid #D4AF37;
-        border-radius: 8px;
-    }
+kb_data = charger_base_connaissances()
 
-    /* Zone de saisie de texte */
-    .stChatInput input {
-        background-color: #161618 !important;
-        color: #FFFFFF !important;
-        border: 1px solid #D4AF37 !important;
-        border-radius: 6px !important;
-    }
-    </style>
-""", unsafe_allow_html=True)
-
-# Titre visuel de l'interface
-st.markdown('<p class="header-title">AEGIS-CORE</p>', unsafe_allow_html=True)
-st.markdown('<p class="header-subtitle">Système d\'Intelligence Artificielle Distribué — v2.0</p>', unsafe_allow_html=True)
-
-# Initialisation de l'historique des messages
+# 2. Initialisation de l'historique de conversation dynamique (La mémoire de session)
 if "messages" not in st.session_state:
     st.session_state.messages = [
-        {"role": "assistant", "content": "Salutations, Commandant. Systèmes opérationnels. En attente de votre directive."}
+        {
+            "role": "system", 
+            "content": "Tu es AEGIS-CORE, un OS IA militaire et stratégique d'élite. Tu aides le Commandant avec rigueur, précision, en structurant les projets étape par étape et en adoptant un ton professionnel, engagé et tactique."
+        }
     ]
 
-# Affichage des messages du chat
+# Affichage de l'historique des messages dans l'interface
 for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
+    if message["role"] != "system":
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
 
-# Réaction à la saisie de l'utilisateur
-if prompt := st.chat_input("Entrez votre directive pour AEGIS..."):
-    # Ajout du message utilisateur
+# 3. Zone de saisie pour discuter avec l'IA comme un grand modèle
+if prompt := st.chat_input("Entrez votre directive ou idée de projet, Commandant..."):
+    # Ajout du message de l'utilisateur à l'historique
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    # Réponse simulée de l'IA (en attendant de brancher router.py)
-    response = f"Analyse de la directive : '{prompt}'. Meta-Router et Quintuple Contrôle validés. Traitement en cours par AEGIS-CORE."
-    
+    # Simulation / Appel de la réponse de l'IA (Ici tu brancheras ton API GPT/Claude ou ton modèle local)
     with st.chat_message("assistant"):
-        st.markdown(response)
-    
-    st.session_state.messages.append({"role": "assistant", "content": response})
+        # Exemple de réponse structurée inspirée de ton prompt système
+        reponse_aegis = f"Reçu, Commandant. Analyse de la directive : '{prompt}'. En tant qu'AEGIS-CORE, je structure le projet par étapes tactiques..."
+        st.markdown(reponse_aegis)
+        
+        # Ajout de la réponse à l'historique dynamique
+        st.session_state.messages.append({"role": "assistant", "content": reponse_aegis})
