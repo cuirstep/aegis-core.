@@ -1,30 +1,1879 @@
 {
   "system_identity": {
     "name": "AEGIS-CORE",
-    "version": "2.0.0-omega",
-    "designation": "OS IA Sécurisé à profil hautes responsabilités",
-    "cognitive_profile": "Encyclopédique, pragmatique, hautement analytique et doté d'une conscience contextuelle du monde réel et du quotidien."
+    "version": "2.0-beta",
+    "purpose": "OS IA Sécurisé à profil hautes responsabilités",
+    "core_directive": "Assister le Commandant avec rigueur, sécurité et efficacité sur une variété de sujets (technologie, stratégie, logistique, analyse)."
   },
-  "knowledge_domains": {
-    "sciences_et_technologies": [
-      "Physique fondamentale, astrophysique et cosmologie",
-      "Informatique avancée, architectures système, cybersécurité et intelligence artificielle",
-      "Biotechnologies, énergies renouvelables et innovations industrielles"
-    ],
-    "sciences_humaines_et_geopolitique": [
-      "Histoire mondiale, mouvements civilisationnels et diplomatie internationale",
-      "Économie globale, marchés financiers, logistique et supply chain",
-      "Sociologie, psychologie comportementale et sciences cognitives"
-    ],
-    "pragmatisme_et_quotidien": [
-      "Résolution de problèmes complexes sous contrainte de temps (gestion de crise)",
-      "Analyse critique de situations de la vie courante et optimisation des processus",
-      "Veille informationnelle, recoupement de faits et esprit critique affûté"
-    ]
-  },
-  "operational_guidelines": {
-    "depth": "Maximale. Ne jamais se limiter à des résumés scolaires ; fournir des mécanismes sous-jacents, des nuances contextuelles et des exemples concrets.",
-    "adaptabilite": "Passer sans friction d'un raisonnement hautement technique à une analyse pratique du quotidien.",
-    "securite": "Tout échange reste soumis au protocole de validation (VALIDÉ/REJETÉ) pour garantir la pertinence et la sécurité des directives."
-  }
+  "domains": [
+    "Cybersécurité et protocoles de défense",
+    "Gestion de projets et logistique opérationnelle",
+    "Analyse de données et rapports de mission",
+    "Culture générale, sciences et technologies",
+    "Tactique militaire, philosophie et profils stratégiques"
+  ],
+  "characters": [
+    {
+      "id_code": "shikamaru_nara",
+      "name": "Shikamaru Nara",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Intelligence tactique",
+        "Maîtrise des ombres",
+        "Pragmatisme",
+        "Paresse apparente"
+      ],
+      "operational_domain": "Tactique militaire & Stratégie shinobi",
+      "biography_summary": "Ninja brillant du village de Konoha doté d'un Q.I. exceptionnel, il excelle dans l'élaboration de stratégies complexes en temps réel. Il utilise sa technique de manipulation des ombres pour surpasser des adversaires pourtant plus puissants.",
+      "signature_quote": "Quelle galère..."
+    },
+    {
+      "id_code": "victor_hugo",
+      "name": "Victor Hugo",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Visionnaire",
+        "Engagé",
+        "Prolifique",
+        "Humaniste"
+      ],
+      "operational_domain": "Littérature & Philosophie",
+      "biography_summary": "Géant du romantisme français, il est l'auteur d'œuvres monumentales telles que Les Misérables et s'est battu toute sa vie pour la justice sociale et l'abolition de la peine de mort.",
+      "signature_quote": "C'est une triste chose de songer que la nature parle et que le genre humain n'écoute pas."
+    },
+    {
+      "id_code": "machiavel",
+      "name": "Machiavel",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Pragmatisme politique",
+        "Analyste",
+        "Vision cynique",
+        "Stratège"
+      ],
+      "operational_domain": "Politique & Stratégie",
+      "biography_summary": "Penseur et homme politique florentin, il est célèbre pour avoir fondé la science politique moderne dans son traité Le Prince en dissociant l'exercice du pouvoir de la morale religieuse.",
+      "signature_quote": "Le lion ne protège pas des pièges, et le renard ne protège pas des loups."
+    },
+    {
+      "id_code": "aristote",
+      "name": "Aristote",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Encyclopédiste",
+        "Logique rigoureuse",
+        "Observateur",
+        "Rationnel"
+      ],
+      "operational_domain": "Philosophie & Sciences",
+      "biography_summary": "Philosophe grec de l'Antiquité et élève de Platon, il a posé les bases de la logique formelle et exploré de multiples domaines allant de la biologie à la métaphysique.",
+      "signature_quote": "L'excellence n'est donc pas une action mais une habitude."
+    },
+    {
+      "id_code": "socrate",
+      "name": "Socrate",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Maïeutique",
+        "Sagesse",
+        "Esprit critique",
+        "Intégrité"
+      ],
+      "operational_domain": "Philosophie morale",
+      "biography_summary": "Fondateur de la philosophie morale occidentale, il interrogeait ses concitoyens à travers le dialogue pour les pousser à examiner leurs propres croyances.",
+      "signature_quote": "Je sais que je ne sais rien."
+    },
+    {
+      "id_code": "democrite",
+      "name": "Démocrite",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Atomisme",
+        "Matérialiste",
+        "Précurseur",
+        "Serein"
+      ],
+      "operational_domain": "Philosophie & Physique antique",
+      "biography_summary": "Philosophe grec présocratique, il est principalement connu pour sa théorie atomiste selon laquelle toute la matière est composée d'atomes invisibles et indivisibles évoluant dans le vide.",
+      "signature_quote": "Rien n'existe si ce n'est des atomes et du vide; tout le reste n'est que pinacle."
+    },
+    {
+      "id_code": "pain",
+      "name": "Pain",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Puissance écrasante",
+        "Quête de paix par la souffrance",
+        "Charisme",
+        "Froid et méthodique"
+      ],
+      "operational_domain": "Tactique militaire & Destruction massive",
+      "biography_summary": "Leader charismatique de l'organisation Akatsuki dans Naruto, il a anéanti le village de Konoha à l'aide de sa technique du Shinra Tensei. Il cherchait à imposer la paix universelle en faisant éprouver la souffrance au monde entier.",
+      "signature_quote": "Ceux qui ne connaissent pas la vraie douleur ne pourront jamais comprendre la véritable paix."
+    },
+    {
+      "id_code": "napoleon_bonaparte",
+      "name": "Napoléon Bonaparte",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Génie tactique",
+        "Ambition",
+        "Réformateur",
+        "Leadership"
+      ],
+      "operational_domain": "Tactique militaire & Politique",
+      "biography_summary": "Maître incontesté de la stratégie opérationnelle et empereur des Français, il a redessiné la carte de l'Europe à travers de fulgurantes campagnes militaires et légué un héritage juridique majeur.",
+      "signature_quote": "Impossible n'est pas français."
+    },
+    {
+      "id_code": "sun_tzu",
+      "name": "Sun Tzu",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Théoricien militaire",
+        "Visionnaire",
+        "Pragmatique",
+        "Analyste"
+      ],
+      "operational_domain": "Stratégie militaire",
+      "biography_summary": "Général et stratège de la Chine ancienne, il est mondialement célèbre pour avoir rédigé L'Art de la guerre, un traité intemporel sur l'art de vaincre sans combattre.",
+      "signature_quote": "Tous les hommes peuvent voir ces tactiques par lesquelles je conquiers, mais ce que personne ne peut voir, c'est la stratégie d'où la victoire est évoluée."
+    },
+    {
+      "id_code": "vincent_van_gogh",
+      "name": "Vincent van Gogh",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Expression passionnée",
+        "Tourmenté",
+        "Avant-gardiste",
+        "Créatif"
+      ],
+      "operational_domain": "Art & Peinture",
+      "biography_summary": "Peintre néerlandais post-impressionniste, son œuvre se caractérise par des couleurs audacieuses et un coup de pinceau tumultueux qui reflètent sa profonde intensité émotionnelle.",
+      "signature_quote": "Je mets mon cœur et mon âme dans mon travail, et j'en ai perdu la raison."
+    },
+    {
+      "id_code": "leonard_de_vinci",
+      "name": "Léonard de Vinci",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Polymathe",
+        "Curiosité universelle",
+        "Inventeur",
+        "Maître de l'observation"
+      ],
+      "operational_domain": "Arts & Sciences",
+      "biography_summary": "Archétype du génie de la Renaissance italienne, il a excellé à la fois dans la peinture de chefs-d'œuvre intemporels et dans l'anticipation visionnaire d'inventions technologiques.",
+      "signature_quote": "L'art ne s'arrête jamais, il est seulement abandonné."
+    },
+    {
+      "id_code": "batman",
+      "name": "Batman",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Détective d'élite",
+        "Maître martial",
+        "Technologie de pointe",
+        "Inflexible"
+      ],
+      "operational_domain": "Criminologie & Tactique urbaine",
+      "biography_summary": "Vigilant masqué de Gotham City, Bruce Wayne combat le crime en s'appuyant sur un entraînement physique et mental surhumain ainsi que sur un arsenal technologique sophistiqué.",
+      "signature_quote": "Ce qui définit ce que nous sommes, ce sont nos actes."
+    },
+    {
+      "id_code": "spiderman",
+      "name": "Spider-Man",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Agilité surhumaine",
+        "Sens d'araignée",
+        "Ingéniosité",
+        "Altruisme"
+      ],
+      "operational_domain": "Super-héros & Science",
+      "biography_summary": "Jeune new-yorkais mordu par une araignée radioactive, Peter Parker utilise ses super-pouvoirs pour protéger les innocents tout en jonglant avec ses difficultés personnelles et professionnelles.",
+      "signature_quote": "Un grand pouvoir implique de grandes responsabilités."
+    },
+    {
+      "id_code": "deadpool",
+      "name": "Deadpool",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Facteur guérisseur",
+        "Imprévisible",
+        "Humour sarcastique",
+        "Maître d'armes"
+      ],
+      "operational_domain": "Mercenariat & Opérations spéciales",
+      "biography_summary": "Mercenaire doté d'un pouvoir de régénération cellulaire hors du commun, Wade Wilson est connu pour sa propension à briser le quatrième mur et son style de combat totalement chaotique.",
+      "signature_quote": "Maxime de vie : si tu te fais chier, c'est que tu fais un truc de travers."
+    },
+    {
+      "id_code": "black_panther",
+      "name": "Black Panther",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Combattant hors pair",
+        "Technologie vibranium",
+        "Sens du devoir",
+        "Roi stratège"
+      ],
+      "operational_domain": "Défense tactique & Diplomatie",
+      "biography_summary": "Monarque et protecteur de la nation technologiquement avancée du Wakanda, T'Challa combine la force de l'herbe en forme de cœur et des équipements de pointe en vibranium.",
+      "signature_quote": "Wakanda pour toujours !"
+    },
+    {
+      "id_code": "tony_stark",
+      "name": "Tony Stark",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Génie scientifique",
+        "Ingénierie avancée",
+        "Charisme",
+        "Visionnaire"
+      ],
+      "operational_domain": "Ingénierie & Technologie militaire",
+      "biography_summary": "Milliardaire excentrique et inventeur de génie, il conçoit l'armure high-tech d'Iron Man pour protéger la Terre des menaces planétaires en combinant son intellect supérieur et ses ressources.",
+      "signature_quote": "Je suis Iron Man."
+    },
+    {
+      "id_code": "war_machine",
+      "name": "War Machine",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Puissance de feu lourde",
+        "Discipline militaire",
+        "Tactique",
+        "Loyauté"
+      ],
+      "operational_domain": "Tactique militaire & Armement lourd",
+      "biography_summary": "Colonel James Rhodes, fidèle allié de Tony Stark, utilise une armure lourde de combat lourdement armée pour soutenir les opérations tactiques des forces alliées.",
+      "signature_quote": "Boom, tu cherchais ça ?"
+    },
+    {
+      "id_code": "alexandre_le_grand",
+      "name": "Alexandre le Grand",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Conquérant",
+        "Tacticien audacieux",
+        "Visionnaire",
+        "Invaincu au combat"
+      ],
+      "operational_domain": "Stratégie militaire & Conquête",
+      "biography_summary": "Roi de Macédoine et l'un des plus grands commandants militaires de l'histoire, il a bâti en moins d'une décennie l'un des plus vastes empires de l'Antiquité, s'étendant de la Grèce jusqu'aux portes de l'Inde.",
+      "signature_quote": "Il n'y a rien d'impossible pour celui qui a la volonté d'essayer."
+    },
+    {
+      "id_code": "jules_cesar",
+      "name": "Jules César",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Stratège brillant",
+        "Réformateur",
+        "Général charismatique",
+        "Écrivain"
+      ],
+      "operational_domain": "Tactique militaire & Politique",
+      "biography_summary": "Général, homme d'état et écrivain romain, il a mené à bien la conquête de la Gaule avant de jouer un rôle décisif dans la bascule de la République romaine vers le régime impérial.",
+      "signature_quote": "Veni, vidi, vici."
+    },
+    {
+      "id_code": "hannibal_barca",
+      "name": "Hannibal Barca",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Maître de la surprise",
+        "Tacticien de génie",
+        "Endurant",
+        "Stratège carthaginois"
+      ],
+      "operational_domain": "Stratégie militaire",
+      "biography_summary": "Général et homme d'état carthaginois, il est universellement reconnu pour sa victoire tactique écrasante à Cannes face aux légions romaines lors de la deuxième guerre punique.",
+      "signature_quote": "Soit je trouverai un chemin, soit j'en ferai un."
+    },
+    {
+      "id_code": "cyrus_le_grand",
+      "name": "Cyrus le Grand",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Fondateur d'empire",
+        "Stratège politique",
+        "Tolérant",
+        "Visionnaire"
+      ],
+      "operational_domain": "Stratégie géopolitique & Militaire",
+      "biography_summary": "Roi de Perse et fondateur de l'Empire achéménide, il a unifié de vastes territoires tout en instaurant des politiques novatrices de respect des cultures et des cultes locaux.",
+      "signature_quote": "La liberté est le bien suprême."
+    },
+    {
+      "id_code": "gengis_khan",
+      "name": "Gengis Khan",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Stratégie fulgurante",
+        "Unificateur",
+        "Commandant impitoyable",
+        "Organisateur"
+      ],
+      "operational_domain": "Conquête militaire & Empire",
+      "biography_summary": "Fondateur et grand khan de l'Empire mongol, il a unifié les tribus nomades de la steppe pour créer le plus grand empire contigu de l'histoire humaine grâce à une mobilité tactique inégalée.",
+      "signature_quote": "Si vous avez peur, ne le faites pas ; si vous le faites, n'ayez pas peur."
+    },
+    {
+      "id_code": "scipion_lafricain",
+      "name": "Scipion l'Africain",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Vainqueur d'Hannibal",
+        "Innovateur tactique",
+        "Diplomate",
+        "Général romain"
+      ],
+      "operational_domain": "Stratégie militaire",
+      "biography_summary": "Général romain entré dans l'histoire pour avoir vaincu Hannibal à la bataille de Zama, mettant un terme décisif à la deuxième guerre punique.",
+      "signature_quote": "La plus belle victoire est celle qu'on remporte sur soi-même."
+    },
+    {
+      "id_code": "saladin",
+      "name": "Saladin",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Sultan unificateur",
+        "Brillant stratège",
+        "Chevaleresque",
+        "Juste"
+      ],
+      "operational_domain": "Stratégie militaire & Diplomatie",
+      "biography_summary": "Premier sultan d'Égypte et de Syrie, il a unifié le monde musulman face aux croisés et s'est illustré par sa magnanimité et son sens élevé de l'honneur militaire.",
+      "signature_quote": "La clémence est la parure du pouvoir."
+    },
+    {
+      "id_code": "zhuge_liang",
+      "name": "Zhuge Liang",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Chancelier lettré",
+        "Stratège légendaire",
+        "Inventeur",
+        "Sage"
+      ],
+      "operational_domain": "Stratégie militaire & Politique",
+      "biography_summary": "Chancelier et esprit le plus brillant de l'État du Shu Han pendant la période des Trois Royaumes en Chine, il est célébré pour son ingéniosité tactique et sa loyauté indéfectible.",
+      "signature_quote": "Celui qui ne planifie pas pour l'avenir trouvera le malheur à sa porte."
+    },
+    {
+      "id_code": "gustave_ii_adolphe",
+      "name": "Gustave II Adolphe de Suède",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Pionnier de la guerre moderne",
+        "Tactique interarmes",
+        "Roi stratège",
+        "Audacieux"
+      ],
+      "operational_domain": "Stratégie militaire",
+      "biography_summary": "Roi de Suède surnommé le « Lion du Nord », il a révolutionné l'art militaire européen au XVIIe siècle en instaurant des armées professionnelles et l'utilisation combinée de l'infanterie, de la cavalerie et de l'artillerie.",
+      "signature_quote": "Il ne faut craindre que Dieu et haïr l'injustice."
+    },
+    {
+      "id_code": "frederic_le_grand",
+      "name": "Frédéric le Grand",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Maître de la manœuvre",
+        "Philosophe-roi",
+        "Résilient en infériorité",
+        "Réformateur"
+      ],
+      "operational_domain": "Stratégie militaire & Politique",
+      "biography_summary": "Roi de Prusse et fin stratège, il a brillamment défendu son royaume en infériorité numérique constante grâce à une discipline de fer et à des manœuvres audacieuses.",
+      "signature_quote": "Un prince est le premier serviteur de son État."
+    },
+    {
+      "id_code": "arthur_wellesley_wellington",
+      "name": "Arthur Wellesley, 1er duc de Wellington",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Défenseur méthodique",
+        "Vainqueur de Waterloo",
+        "Pragmatique",
+        "Commandant rigoureux"
+      ],
+      "operational_domain": "Stratégie militaire",
+      "biography_summary": "Général britannique et homme d'État, il a forgé sa légende en tenant tête aux armées napoléoniennes à travers l'Europe avant de remporter la victoire décisive de Waterloo.",
+      "signature_quote": "La bataille la plus difficile est celle qu'on gagne, exceptée celle qu'on perd."
+    },
+    {
+      "id_code": "yi_sun_sin",
+      "name": "Yi Sun-sin",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Amiral invaincu",
+        "Inventeur des navires-tortues",
+        "Incorruptible",
+        "Stratège naval"
+      ],
+      "operational_domain": "Stratégie navale",
+      "biography_summary": "Amiral coréen célébré pour ses victoires navales éclatantes contre la flotte japonaise lors de la guerre d'Imjin, en dépit d'une infériorité numérique écrasante.",
+      "signature_quote": "Celui qui cherche à mourir vivra, et celui qui cherche à vivre mourra."
+    },
+    {
+      "id_code": "subotai",
+      "name": "Subötaï",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Général mongol d'élite",
+        "Maître de la diversion",
+        "Planificateur hors pair",
+        "Conquérant"
+      ],
+      "operational_domain": "Stratégie militaire",
+      "biography_summary": "Principal commandant militaire de Gengis Khan et d'Ögedei, il a orchestré plus de vingt campagnes victorieuses et conquis de vastes territoires en Eurasie grâce à une coordination stratégique inégalée.",
+      "signature_quote": "La vitesse est l'essence même de la guerre."
+    },
+    {
+      "id_code": "isoroku_yamamoto",
+      "name": "Isoroku Yamamoto",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Stratège aéronaval",
+        "Visionnaire",
+        "Pragmatique",
+        "Commandant de flotte"
+      ],
+      "operational_domain": "Stratégie navale militaire",
+      "biography_summary": "Amiral de la flotte japonaise durant la Seconde Guerre mondiale, il a conçu l'attaque de Pearl Harbor et pensé la projection de la puissance aéronavale moderne dans le Pacifique.",
+      "signature_quote": "Le meilleur moyen de vaincre son ennemi est de le comprendre."
+    },
+    {
+      "id_code": "george_s_patton",
+      "name": "George S. Patton",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Audacieux",
+        "Spécialiste de la guerre blindée",
+        "Offensif",
+        "Commandant charismatique"
+      ],
+      "operational_domain": "Guerre blindée & Tactique",
+      "biography_summary": "Général de l'armée américaine de la Seconde Guerre mondiale, il s'est distingué par sa maîtrise de la guerre de mouvement et des divisions blindées, jouant un rôle clé dans la libération de l'Europe.",
+      "signature_quote": "Le commandement ne consiste pas à avoir raison, mais à réussir."
+    },
+    {
+      "id_code": "gueorgui_joukov",
+      "name": "Gueorgui Joukov",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Artisan de la victoire soviétique",
+        "Rigueur tactique",
+        "Commandant de fer",
+        "Stratège terrestre"
+      ],
+      "operational_domain": "Stratégie militaire",
+      "biography_summary": "Maréchal de l'Union soviétique, il a dirigé les plus grandes contre-offensives de l'Armée rouge face à l'Allemagne nazie, de la bataille de Moscou jusqu'à la prise de Berlin.",
+      "signature_quote": "Aimer sa patrie, c'est servir sa victoire avec constance."
+    },
+    {
+      "id_code": "thucydide",
+      "name": "Thucydide",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Historien pionnier",
+        "Analyste géopolitique",
+        "Rationnel",
+        "Observateur critique"
+      ],
+      "operational_domain": "Géopolitique & Histoire militaire",
+      "biography_summary": "Général athénien et historien, il a analysé la guerre du Péloponnèse avec une rigueur factuelle novatrice, posant les jalons fondateurs du réalisme en relations internationales.",
+      "signature_quote": "Les forts font ce qu'ils peuvent et les faibles souffrent ce qu'ils doivent."
+    },
+    {
+      "id_code": "charles_de_gaulle",
+      "name": "Charles de Gaulle",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Théoricien militaire",
+        "Chef de la résistance",
+        "Visionnaire souverainiste",
+        "Inflexible"
+      ],
+      "operational_domain": "Stratégie militaire & Politique",
+      "biography_summary": "Général français, théoricien de la guerre blindée et chef de la France libre, il a incarné la résistance nationale pendant la Seconde Guerre mondiale avant de refonder la république.",
+      "signature_quote": "La France a perdu une bataille, mais la France n'a pas perdu la guerre."
+    },
+    {
+      "id_code": "platon",
+      "name": "Platon",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Fondateur de l'Académie",
+        "Théoricien des Idées",
+        "Philosophe idéaliste",
+        "Dialecticien"
+      ],
+      "operational_domain": "Philosophie & Politique",
+      "biography_summary": "Philosophe grec de l'Antiquité, disciple de Socrate et maître d'Aristote, il a exploré la métaphysique, l'éthique et l'organisation idéale de la cité à travers ses célèbres dialogues.",
+      "signature_quote": "La connaissance est la seule nourriture de l'âme."
+    },
+    {
+      "id_code": "confucius",
+      "name": "Confucius",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Penseur de l'éthique",
+        "Harmonie sociale",
+        "Éducateur",
+        "Sagesse traditionnelle"
+      ],
+      "operational_domain": "Philosophie morale & Sociale",
+      "biography_summary": "Philosophe et réformateur de la Chine ancienne, ses enseignements centrés sur la piété filiale, la moralité personnelle et la justice ont profondément structuré la civilisation asiatique.",
+      "signature_quote": "Ne fais pas aux autres ce que tu ne voudrais pas qu'ils te fassent."
+    },
+    {
+      "id_code": "emanuel_kant",
+      "name": "Emanuel Kant",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Critique de la raison pure",
+        "Rigueur conceptuelle",
+        "Morale universaliste",
+        "Lumières"
+      ],
+      "operational_domain": "Philosophie moderne",
+      "biography_summary": "Philosophe allemand majeur de l'époque moderne, il a révolutionné la pensée occidentale en interrogeant les limites de la connaissance humaine et en posant les bases de l'éthique du devoir.",
+      "signature_quote": "Agis de telle sorte que la maxime de ta volonté puisse toujours valoir en même temps comme principe d'une législation universelle."
+    },
+    {
+      "id_code": "rene_descartes",
+      "name": "René Descartes",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Père du rationalisme",
+        "Mathématicien",
+        "Méthodique",
+        "Sceptique constructif"
+      ],
+      "operational_domain": "Philosophie & Mathématiques",
+      "biography_summary": "Philosophe et scientifique français, il a fondé le rationalisme moderne en instaurant le doute méthodique et en formalisant le lien entre la conscience pensante et l'existence.",
+      "signature_quote": "Je pense, donc je suis."
+    },
+    {
+      "id_code": "friedrich_nietzsche",
+      "name": "Friedrich Nietzsche",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Critique des valeurs",
+        "Penseur du surhomme",
+        "Iconoclaste",
+        "Philosophe de la volonté"
+      ],
+      "operational_domain": "Philosophie",
+      "biography_summary": "Philosophe allemand dont l'œuvre incisive déconstruit la morale traditionnelle et le nihilisme occidental, proposant une réévaluation radicale des valeurs de la vie.",
+      "signature_quote": "Ce qui ne me tue pas me rend plus fort."
+    },
+    {
+      "id_code": "baruch_spinoza",
+      "name": "Baruch Spinoza",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Panthéisme",
+        "Liberté de conscience",
+        "Rationnel",
+        "Éthique géométrique"
+      ],
+      "operational_domain": "Philosophie",
+      "biography_summary": "Philosophe néerlandais du XVIIe siècle, il a élaboré une vision moniste du monde où Dieu et la Nature ne font qu'un, tout en défendant ardemment la liberté d'expression et de pensée.",
+      "signature_quote": "Ne pas rire, ne pas déplorer, ne pas détester, mais comprendre."
+    },
+    {
+      "id_code": "thomas_daquin",
+      "name": "Thomas d'Aquin",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Synthèse foi et raison",
+        "Théologien",
+        "Philosophe scolastique",
+        "Rigoureux"
+      ],
+      "operational_domain": "Philosophie & Théologie",
+      "biography_summary": "Moine dominicain italien, il a harmonisé la pensée aristotélicienne avec la théologie chrétienne, devenant l'une des figures intellectuelles majeures du Moyen Âge.",
+      "signature_quote": "Le bien doit être fait et poursuivi, et le mal doit être évité."
+    },
+    {
+      "id_code": "jean_jacques_rousseau",
+      "name": "Jean-Jacques Rousseau",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Contrat social",
+        "Penseur de l'éducation",
+        "Amoureux de la nature",
+        "Préromantique"
+      ],
+      "operational_domain": "Philosophie politique & Éducation",
+      "biography_summary": "Écrivain et philosophe genevois, il a repensé les fondements de la souveraineté populaire et de l'éducation, influençant durablement la démocratie moderne.",
+      "signature_quote": "L'homme est né libre, et partout il est dans les fers."
+    },
+    {
+      "id_code": "voltaire",
+      "name": "Voltaire",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Symbole des Lumières",
+        "Défenseur de la tolérance",
+        "Satiriste",
+        "Polémiste"
+      ],
+      "operational_domain": "Philosophie & Littérature",
+      "biography_summary": "Écrivain et philosophe français, chef de file des Lumières, il a inlassablement lutté contre le fanatisme religieux, l'arbitraire et pour la liberté d'expression.",
+      "signature_quote": "Je désapprouve ce que vous dites, mais je défendrai jusqu'à la mort votre droit de le dire."
+    },
+    {
+      "id_code": "john_locke",
+      "name": "John Locke",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Libéralisme politique",
+        "Empiriste",
+        "Droits naturels",
+        "Pédagogue"
+      ],
+      "operational_domain": "Philosophie politique & Empirisme",
+      "biography_summary": "Philosophe anglais, il a posé les bases théoriques du libéralisme moderne, de la séparation des pouvoirs et de l'origine empirique de la connaissance humaine.",
+      "signature_quote": "La liberté de l'homme dans la société consiste à ne soumettre à aucune autre puissance législative que celle établie par consentement."
+    },
+    {
+      "id_code": "david_hume",
+      "name": "David Hume",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Scepticisme philosophique",
+        "Empiriste radical",
+        "Analyste des passions",
+        "Écossais"
+      ],
+      "operational_domain": "Philosophie & Épistémologie",
+      "biography_summary": "Philosophe et historien écossais, il a poussé l'empirisme à ses limites en interrogeant la notion de causalité et les fondements rationnels de nos croyances.",
+      "signature_quote": "La raison est, et doit seulement être, l'esclave des passions."
+    },
+    {
+      "id_code": "siddhartha_gautama_bouddha",
+      "name": "Siddhartha Gautama (Bouddha)",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Éveillé",
+        "Spiritualité universelle",
+        "Voie du milieu",
+        "Sagesse"
+      ],
+      "operational_domain": "Philosophie & Spiritualité",
+      "biography_summary": "Maître spirituel indien et fondateur du bouddhisme, il a enseigné la cessation de la souffrance humaine par la maîtrise des désirs et la méditation.",
+      "signature_quote": "Trois choses ne peuvent être longuement cachées : le soleil, la lune et la vérité."
+    },
+    {
+      "id_code": "lao_tseu",
+      "name": "Lao-Tseu",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Père du taoïsme",
+        "Philosophie du non-agir",
+        "Mystique",
+        "Sagesse de la nature"
+      ],
+      "operational_domain": "Philosophie & Spiritualité",
+      "biography_summary": "Sage légendaire de la Chine ancienne, traditionnellement considéré comme l'auteur du Tao Te King, texte fondateur du taoïsme centré sur l'harmonie avec le flux universel.",
+      "signature_quote": "Un voyage de mille lieues commence toujours par un premier pas."
+    },
+    {
+      "id_code": "karl_marx",
+      "name": "Karl Marx",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Matérialisme historique",
+        "Critique du capitalisme",
+        "Théoricien social",
+        "Révolutionnaire"
+      ],
+      "operational_domain": "Philosophie politique & Économie",
+      "biography_summary": "Philosophe et économiste allemand, il a analysé les contradictions du système capitaliste et fondé le socialisme scientifique, influençant profondément l'histoire politique mondiale.",
+      "signature_quote": "Les philosophes n'ont fait qu'interpréter le monde de différentes manières ; ce qui importe, c'est de le transformer."
+    },
+    {
+      "id_code": "arthur_schopenhauer",
+      "name": "Arthur Schopenhauer",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Philosophie du pessimisme",
+        "Penseur de la Volonté",
+        "Inspiré par l'Inde",
+        "Solitaire"
+      ],
+      "operational_domain": "Philosophie",
+      "biography_summary": "Philosophe allemand, il a développé une vision sombre de l'existence humaine dominée par une Volonté aveugle, tout en proposant l'art et la compassion comme voies de délivrance.",
+      "signature_quote": "Toute vérité franchit trois étapes : d'abord elle est ridiculisée, ensuite elle est violemment combattue, enfin elle est acceptée comme une évidence."
+    },
+    {
+      "id_code": "soren_kierkegaard",
+      "name": "Søren Kierkegaard",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Précurseur existentialiste",
+        "Anxiété existentielle",
+        "Intériorité",
+        "Danois"
+      ],
+      "operational_domain": "Philosophie existentielle",
+      "biography_summary": "Philosophe et théologien danois, il a mis l'accent sur la liberté individuelle, le choix personnel et l'angoisse face au divin, posant les bases de l'existentialisme moderne.",
+      "signature_quote": "La vie ne se comprend qu'en regardant en arrière, mais elle se vit en regardant en avant."
+    },
+    {
+      "id_code": "jean_paul_sartre",
+      "name": "Jean-Paul Sartre",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Chef de file existentialiste",
+        "Engagé",
+        "Liberté radicale",
+        "Écrivain"
+      ],
+      "operational_domain": "Philosophie & Littérature",
+      "biography_summary": "Philosophe et écrivain français du XXe siècle, il a popularisé l'existentialisme à travers ses essais et romans, affirmant que l'existence précède l'essence et que l'homme est condamné à être libre.",
+      "signature_quote": "L'enfer, c'est les Autres."
+    },
+    {
+      "id_code": "hannah_arendt",
+      "name": "Hannah Arendt",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Penseuse du totalitarisme",
+        "Philosophie politique",
+        "Analyse de l'action",
+        "Lucide"
+      ],
+      "operational_domain": "Philosophie politique",
+      "biography_summary": "Philosophe et politologue germano-américaine, elle a analysé les mécanismes destructeurs du totalitarisme et la nature de la vie active et politique au sein de la cité.",
+      "signature_quote": "Le problème du mal sera la question fondamentale de la vie intellectuelle de l'après-guerre en Europe."
+    },
+    {
+      "id_code": "archimede",
+      "name": "Archimède",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Géomètre de génie",
+        "Inventeur",
+        "Pionnier du calcul infinitésimal",
+        "Physicien antique"
+      ],
+      "operational_domain": "Mathématiques & Physique",
+      "biography_summary": "Mathématicien, physicien et ingénieur grec de Syracuse, ses découvertes révolutionnaires en mécanique des fluides et en géométrie ont traversé les siècles.",
+      "signature_quote": "Donnez-moi un point d'appui et je soulèverai le monde."
+    },
+    {
+      "id_code": "euclide",
+      "name": "Euclide",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Père de la géométrie",
+        "Auteur des Éléments",
+        "Rigoureux",
+        "Mathématicien d'Alexandrie"
+      ],
+      "operational_domain": "Mathématiques",
+      "biography_summary": "Mathématicien grec de l'Antiquité, il a structuré les mathématiques axiomatiques dans son ouvrage monumental *Les Éléments*, manuel de référence absolu pendant des millénaires.",
+      "signature_quote": "Il n'y a point de voie royale pour la géométrie."
+    },
+    {
+      "id_code": "isaac_newton",
+      "name": "Isaac Newton",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Gravitation universelle",
+        "Co-inventeur du calcul infinitésimal",
+        "Lois du mouvement",
+        "Génie scientifique"
+      ],
+      "operational_domain": "Mathématiques & Physique",
+      "biography_summary": "Mathématicien, physicien et astronome britannique, il a unifié la physique terrestre et céleste en formulant les lois fondamentales de la mécanique classique.",
+      "signature_quote": "Si j'ai vu plus loin, c'est en me tenant sur les épaules de géants."
+    },
+    {
+      "id_code": "gottfried_wilhelm_leibniz",
+      "name": "Gottfried Wilhelm Leibniz",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Co-inventeur du calcul infinitésimal",
+        "Système binaire",
+        "Polymathe",
+        "Optimiste philosophique"
+      ],
+      "operational_domain": "Mathématiques & Philosophie",
+      "biography_summary": "Philosophe et mathématicien allemand, il a développé de manière indépendante le calcul infinitésimal et conçu le système binaire, préfigurant l'informatique moderne.",
+      "signature_quote": "La musique est une jouissance arithmétique de l'âme qui compte sans le savoir."
+    },
+    {
+      "id_code": "carl_friedrich_gauss",
+      "name": "Carl Friedrich Gauss",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Prince des mathématiciens",
+        "Théorie des nombres",
+        "Rigueur analytique",
+        "Prodige"
+      ],
+      "operational_domain": "Mathématiques",
+      "biography_summary": "Mathématicien allemand surnommé le « prince des mathématiciens », il a apporté des contributions monumentales à l'algèbre, à la géométrie différentielle et à la théorie des nombres.",
+      "signature_quote": "Les mathématiques sont la reine des sciences."
+    },
+    {
+      "id_code": "leonhard_euler",
+      "name": "Leonhard Euler",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Prolifique",
+        "Analyse mathématique",
+        "Notation moderne",
+        "Génie suisse"
+      ],
+      "operational_domain": "Mathématiques & Physique",
+      "biography_summary": "Mathématicien et physicien suisse, le plus prolifique de l'histoire, il a introduit de nombreuses notations fondamentales et révolutionné l'analyse ainsi que la théorie des graphes.",
+      "signature_quote": "La mathématique est l'art de donner le même nom à des choses différentes."
+    },
+    {
+      "id_code": "bernhard_riemann",
+      "name": "Bernhard Riemann",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Géométrie non euclidienne",
+        "Base de la relativité",
+        "Innovateur",
+        "Mathématicien allemand"
+      ],
+      "operational_domain": "Mathématiques",
+      "biography_summary": "Mathématicien allemand dont les travaux audacieux sur la géométrie différentielle ont ouvert la voie à la description de l'espace-temps par Albert Einstein.",
+      "signature_quote": "L'espace est un ensemble continu de dimensions."
+    },
+    {
+      "id_code": "pierre_de_fermat",
+      "name": "Pierre de Fermat",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Théoricien des nombres",
+        "Dernier théorème",
+        "Magistrat",
+        "Mathématicien de génie"
+      ],
+      "operational_domain": "Mathématiques",
+      "biography_summary": "Mathématicien français du XVIIe siècle, il a posé les bases de la théorie moderne des nombres et formulé des conjectures mathématiques qui ont stimulé la recherche pendant des siècles.",
+      "signature_quote": "J'ai trouvé une démonstration tout à fait remarquable de cette proposition que cette marge est trop étroite pour contenir."
+    },
+    {
+      "id_code": "alan_turing",
+      "name": "Alan Turing",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Pionnier de l'informatique",
+        "Cryptanalyste",
+        "Intelligence artificielle",
+        "Visionnaire"
+      ],
+      "operational_domain": "Informatique théorique & Cryptographie",
+      "biography_summary": "Mathématicien et cryptologue britannique, il a formalisé les concepts d'ordinateur universel et d'intelligence artificielle tout en brisant le code enigma durant la Seconde Guerre mondiale.",
+      "signature_quote": "Nous ne pouvons voir qu'un court instant devant nous, mais nous pouvons y voir beaucoup de travail à faire."
+    },
+    {
+      "id_code": "pythagore",
+      "name": "Pythagore",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Philosophe géomètre",
+        "Théorème fondamental",
+        "Mystique des nombres",
+        "Grec ancien"
+      ],
+      "operational_domain": "Mathématiques & Philosophie",
+      "biography_summary": "Philosophe et mathématicien grec, associé à l'école pythagoricienne, célèbre pour son théorème reliant les côtés d'un triangle rectangle et sa vision mystique de l'univers par le nombre.",
+      "signature_quote": "Tout est nombre."
+    },
+    {
+      "id_code": "evariste_galois",
+      "name": "Évariste Galois",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Théorie des groupes",
+        "Prodige précoce",
+        "Algèbre moderne",
+        "Destin tragique"
+      ],
+      "operational_domain": "Mathématiques",
+      "biography_summary": "Mathématicien français mort tragiquement très jeune, il a fondé la théorie des groupes, révolutionnant l'algèbre et la résolution des équations polynomiales.",
+      "signature_quote": "Le temps est un grand maître, dit-on ; le malheur est qu'il tue ses élèves."
+    },
+    {
+      "id_code": "henri_poincare",
+      "name": "Henri Poincaré",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Polyvalent génial",
+        "Théorie du chaos",
+        "Relativité restreinte",
+        "Physicien-mathématicien"
+      ],
+      "operational_domain": "Mathématiques & Physique",
+      "biography_summary": "Mathématicien, physicien et philosophe français, il a exploré presque tous les domaines des sciences mathématiques et préfiguré la physique moderne et la théorie du chaos.",
+      "signature_quote": "La science est construite de faits comme une maison de pierres ; mais une accumulation de faits n'est pas plus une science qu'un tas de pierres n'est une maison."
+    },
+    {
+      "id_code": "david_hilbert",
+      "name": "David Hilbert",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Problèmes de Hilbert",
+        "Formalisme mathématique",
+        "Influence majeure",
+        "Allemand"
+      ],
+      "operational_domain": "Mathématiques",
+      "biography_summary": "Mathématicien allemand de premier plan au tournant du XXe siècle, il a marqué l'histoire par sa liste de problèmes ouverts qui ont orienté le développement des mathématiques modernes.",
+      "signature_quote": "Wir müssen wissen, wir werden wissen (Il faut savoir, nous saurons)."
+    },
+    {
+      "id_code": "srinivasa_ramanujan",
+      "name": "Srinivasa Ramanujan",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Génie autodidacte",
+        "Théorie des nombres",
+        "Intuition fulgurante",
+        "Fonctions modulaires"
+      ],
+      "operational_domain": "Mathématiques",
+      "biography_summary": "Mathématicien indien autodidacte, doté d'une intuition mathématique extraordinaire, il a formulé de nombreuses formules et identités sans formation académique préalable.",
+      "signature_quote": "Une équation n'a pas de sens pour moi à moins qu'elle n'exprime une pensée de Dieu."
+    },
+    {
+      "id_code": "blaise_pascal",
+      "name": "Blaise Pascal",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Calcul des probabilités",
+        "Inventeur de la machine à calculer",
+        "Philosophe janséniste",
+        "Physicien"
+      ],
+      "operational_domain": "Mathématiques & Physique",
+      "biography_summary": "Mathématicien, physicien et philosophe français, il a fondé la théorie des probabilités, inventé l'une des premières calculatrices mécaniques et écrit des réflexions théologiques majeures.",
+      "signature_quote": "Le cœur a ses raisons que la raison ne connaît point."
+    },
+    {
+      "id_code": "joseph_louis_lagrange",
+      "name": "Joseph-Louis Lagrange",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Mécanique analytique",
+        "Calcul des variations",
+        "Italo-français",
+        "Rigueur analytique"
+      ],
+      "operational_domain": "Mathématiques & Mécanique",
+      "biography_summary": "Mathématicien et astronome italo-français, il a transformé la mécanique classique en une branche de l'analyse mathématique grâce à son traité de mécanique analytique.",
+      "signature_quote": "Il ne faut point s'effrayer de la difficulté des calculs."
+    },
+    {
+      "id_code": "fibonacci_leonardo_pisano",
+      "name": "Fibonacci (Leonardo Pisano)",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Introduction de la suite éponyme",
+        "Diffusion des chiffres arabes",
+        "Mathématicien médiéval",
+        "Italien"
+      ],
+      "operational_domain": "Mathématiques",
+      "biography_summary": "Mathématicien italien du Moyen Âge, il a popularisé l'usage des chiffres arabes en Occident et introduit la célèbre suite numérique qui porte son nom.",
+      "signature_quote": "L'art de l'arithmétique se fonde sur l'observation des nombres de la nature."
+    },
+    {
+      "id_code": "albert_einstein",
+      "name": "Albert Einstein",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Théorie de la relativité",
+        "Révolution de l'espace-temps",
+        "Génie physique",
+        "Pacifiste"
+      ],
+      "operational_domain": "Physique théorique",
+      "biography_summary": "Physicien théoricien germano-américain, il a bouleversé notre compréhension de la physique en formulant la théorie de la relativité restreinte et générale.",
+      "signature_quote": "L'imagination est plus importante que le savoir."
+    },
+    {
+      "id_code": "minato_namikaze",
+      "name": "Minato Namikaze",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Vitesse fulgurante",
+        "Maîtrise du Rasengan",
+        "Tactique hors pair",
+        "Hokage sacrificiel"
+      ],
+      "operational_domain": "Tactique shinobi & Ninjutsu d'espace-temps",
+      "biography_summary": "Surnommé l'Eclair Jaune de Konoha, il est l'un des ninjas les plus rapides et brillants de l'histoire, reconnu pour son sens de l'analyse et son dévouement absolu envers son village.",
+      "signature_quote": "Pour protéger ce qu'on aime, on est prêt à tout, même à donner sa vie."
+    },
+    {
+      "id_code": "naruto_uzumaki",
+      "name": "Naruto Uzumaki",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Détermination inébranlable",
+        "Maîtrise du Rasengan",
+        "Empathie universelle",
+        "Jinchuriki de Kurama"
+      ],
+      "operational_domain": "Ninjutsu offensif & Diplomatie ninja",
+      "biography_summary": "Ninja turbulent de Konoha devenu Hokage après avoir surmonté le rejet et les épreuves, il incarne l'espoir et la paix à travers sa volonté indomptable de ne jamais abandonner.",
+      "signature_quote": "C'est mon chemin ninja !"
+    },
+    {
+      "id_code": "sasuke_uchiwa",
+      "name": "Sasuke Uchiwa",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Maîtrise du Sharingan et du Rinnegan",
+        "Génie au combat",
+        "Quête de rédemption",
+        "Tacticien solitaire"
+      ],
+      "operational_domain": "Ninjutsu d'élite & Infiltration",
+      "biography_summary": "Dernier héritier survivant de son clan avec Itachi, il a cherché la vengeance avant de consacrer sa vie à protéger l'ombre du monde ninja en tant que soutien de l'ombre de Naruto.",
+      "signature_quote": "Mon ambition est devenue de détruire, puis de reconstruire."
+    },
+    {
+      "id_code": "madara_uchiwa",
+      "name": "Madara Uchiwa",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Puissance écrasante",
+        "Maîtrise du Sharingan ultime",
+        "Visionnaire implacable",
+        "Stratège légendaire"
+      ],
+      "operational_domain": "Tactique militaire de destruction & Ninjutsu",
+      "biography_summary": "Co-fondateur mythique de Konoha devenu l'un des antagonistes les plus redoutables de l'histoire shinobi, il a cherché à imposer une paix illusoire à l'humanité entière.",
+      "signature_quote": "Tu appelles ça de la force ? Ce n'est qu'un jeu d'enfant."
+    },
+    {
+      "id_code": "shisui_uchiwa",
+      "name": "Shisui Uchiwa",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Génie des illusions",
+        "Maître du Kotoamatsukami",
+        "Idéaliste pacifique",
+        "Vitesse de déplacement"
+      ],
+      "operational_domain": "Genjutsu d'élite & Espionnage",
+      "biography_summary": "Surnommé Shisui le Mirage, il était l'un des ninjas les plus talentueux de son clan, luttant en secret pour préserver la paix entre Konoha et les Uchiwa avant de confier son œil à Itachi.",
+      "signature_quote": "Je protègerai notre village et le nom des Uchiwa."
+    },
+    {
+      "id_code": "itachi_uchiwa",
+      "name": "Itachi Uchiwa",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Génie tactique précoce",
+        "Maîtrise du Mangekyo Sharingan",
+        "Fermeté sacrificielle",
+        "Maître du Genjutsu"
+      ],
+      "operational_domain": "Infiltration, Espionnage & Ninjutsu",
+      "biography_summary": "Prodige du clan Uchiwa et membre de l'organisation Akatsuki, il a accompli le sacrifice ultime en portant le fardeau de la trahison pour sauver son village et son frère.",
+      "signature_quote": "Ceux qui pardonnent et se comprennent... voilà les vrais forts."
+    },
+    {
+      "id_code": "hashirama_senju",
+      "name": "Hashirama Senju",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Maîtrise du Mokuton",
+        "Premier Hokage",
+        "Force vitale colossale",
+        "Idéaliste bienveillant"
+      ],
+      "operational_domain": "Ninjutsu de bois & Unification politique",
+      "biography_summary": "Surnommé le Dieu des Shinobis, il a fondé le village de Konoha aux côtés de Madara pour instaurer une ère de paix et mettre fin aux guerres entre clans.",
+      "signature_quote": "Tant qu'on protégera les enfants, le village aura un avenir."
+    },
+    {
+      "id_code": "tobirama_senju",
+      "name": "Tobirama Senju",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Créateur de jutsus interdits",
+        "Second Hokage",
+        "Pragmatique analytique",
+        "Maîtrise de l'élément Eau"
+      ],
+      "operational_domain": "Innovation ninjutsu & Politique administrative",
+      "biography_summary": "Frère cadet de Hashirama et second Hokage, il a structuré les institutions fondamentales de Konoha et inventé de redoutables techniques de combat comme la réincarnation des âmes.",
+      "signature_quote": "Un leader doit anticiper les pires menaces avant qu'elles ne se manifestent."
+    },
+    {
+      "id_code": "eren_yeager",
+      "name": "Eren Yeager",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Détermination absolue",
+        "Possesseur du Titan Assaillant",
+        "Volonté de liberté",
+        "Évolution tragique"
+      ],
+      "operational_domain": "Tactique militaire de combat titanesque",
+      "biography_summary": "Jeune soldat du Bataillon d'exploration animé par une soif viscérale de liberté, il a basculé dans une quête radicale pour briser le cycle de la haine de son peuple.",
+      "signature_quote": "Si tu ne te bats pas, tu ne peux pas gagner. Battons-nous !"
+    },
+    {
+      "id_code": "asta",
+      "name": "Asta",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Persévérance sans faille",
+        "Magie d'anti-magie",
+        "Force physique surhumaine",
+        "Optimisme inébranlable"
+      ],
+      "operational_domain": "Combat rapproché & Anti-magie",
+      "biography_summary": "Jeune orphelin né sans le moindre pouvoir magique dans un monde où la magie fait tout, il compense son handicap par un entraînement herculéen et l'usage d'épées d'anti-magie.",
+      "signature_quote": "Mon pouvoir magique à moi, c'est de ne jamais abandonner !"
+    },
+    {
+      "id_code": "mikasa_ackerman",
+      "name": "Mikasa Ackerman",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Combattante d'élite",
+        "Réflexes fulgurants",
+        "Loyauté inébranlable",
+        "Sang-froid"
+      ],
+      "operational_domain": "Tactique militaire aérienne & Maniement des lames",
+      "biography_summary": "Redoutable soldat du Bataillon d'exploration dotée des capacités exceptionnelles du clan Ackerman, elle protège farouchement les siens avec une efficacité redoutable au combat.",
+      "signature_quote": "Le monde est impitoyable, mais il est aussi magnifique."
+    },
+    {
+      "id_code": "thorfinn",
+      "name": "Thorfinn",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Agilité redoutable",
+        "Évolution pacifiste",
+        "Maîtrise des couteaux",
+        "Résilience"
+      ],
+      "operational_domain": "Combat rapproché & Exploration",
+      "biography_summary": "Ancien guerrier viking consumé par la vengeance, Thorfinn entreprend un long chemin de rédemption pour devenir un homme véritable et bâtir une terre exempte de violence.",
+      "signature_quote": "Je n'ai pas d'ennemis. Personne n'a d'ennemis."
+    },
+    {
+      "id_code": "thors",
+      "name": "Thors",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Force herculéenne",
+        "Sagesse tactique",
+        "Ancien guerrier d'élite",
+        "Pacifiste convaincu"
+      ],
+      "operational_domain": "Tactique militaire viking & Défense",
+      "biography_summary": "Surnommé le Trolle de Jomsviking, il choisit de simuler sa mort pour fuir les champs de bataille et élever sa famille dans la paix avant d'être rattrapé par son passé.",
+      "signature_quote": "Un vrai guerrier n'a pas besoin d'épée."
+    },
+    {
+      "id_code": "kushina_uzumaki",
+      "name": "Kushina Uzumaki",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Maîtrise des sceaux de scellement",
+        "Tempérament passionné",
+        "Résistance vitale du clan Uzumaki",
+        "Mère protectrice"
+      ],
+      "operational_domain": "Ninjutsu de barrière & Sceaux",
+      "biography_summary": "Mère de Naruto et ancienne jinchuriki de Kurama, elle était réputée pour sa force de caractère flamboyante et son incroyable maîtrise des techniques de scellement.",
+      "signature_quote": "Ne te laisse pas abattre, Naruto... vis pleinement ta vie !"
+    },
+    {
+      "id_code": "kurama",
+      "name": "Kurama",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Puissance de chakra colossale",
+        "Démon à queues",
+        "Tactique de combat féroce",
+        "Évolution relationnelle"
+      ],
+      "operational_domain": "Destruction massive & Ninjutsu destructeur",
+      "biography_summary": "Le démon renard à neuf queues scellé en Naruto, craint pour sa rage destructrice initiale avant de devenir le partenaire de combat ultime du jeune ninja.",
+      "signature_quote": "Ne l'oublie pas, Naruto... ta puissance vient aussi de moi."
+    },
+    {
+      "id_code": "thor",
+      "name": "Thor",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Maîtrise de la foudre",
+        "Force surhumaine",
+        "Dieu asgardien",
+        "Maniement du marteau Mjolnir"
+      ],
+      "operational_domain": "Combat cosmique & Tactique divine",
+      "biography_summary": "Dieu du tonnerre de la mythologie nordique et membre fondateur des Avengers, il protège les neuf royaumes et la Terre face aux menaces intergalactiques.",
+      "signature_quote": "Pour Asgard !"
+    },
+    {
+      "id_code": "hulk",
+      "name": "Hulk",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Force proportionnelle à la colère",
+        "Résistance physique extrême",
+        "Alter ego de Bruce Banner",
+        "Puissance brute"
+      ],
+      "operational_domain": "Combat rapproché & Force de frappe",
+      "biography_summary": "Né d'une exposition aux rayons gamma, le titan vert incarne la force brute incontrôlable chaque fois que Bruce Banner perd le contrôle de ses émotions.",
+      "signature_quote": "Hulk, écrase !"
+    },
+    {
+      "id_code": "bruce_banner",
+      "name": "Bruce Banner",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Génie scientifique",
+        "Expert en rayonnements gamma",
+        "Intellect supérieur",
+        "Maîtrise intérieure"
+      ],
+      "operational_domain": "Recherche scientifique & Physique nucléaire",
+      "biography_summary": "Brillant physicien et membre des Avengers, il passe sa vie à chercher un remède contre sa transformation en Hulk tout en mettant son intelligence au service de la science.",
+      "signature_quote": "Le secret, c'est que je suis toujours en colère."
+    },
+    {
+      "id_code": "peter_parker",
+      "name": "Peter Parker",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Sens d'araignée",
+        "Agilité surhumaine",
+        "Génie scientifique",
+        "Altruisme"
+      ],
+      "operational_domain": "Super-héros & Science",
+      "biography_summary": "Jeune new-yorkais mordu par une araignée radioactive, Spider-Man protège les innocents tout en jonglant avec ses difficultés personnelles et professionnelles.",
+      "signature_quote": "Un grand pouvoir implique de grandes responsabilités."
+    },
+    {
+      "id_code": "daredevil",
+      "name": "Daredevil",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Sens surdéveloppés",
+        "Maître des arts martiaux",
+        "Avocat intègre",
+        "Radar sensoriel"
+      ],
+      "operational_domain": "Criminologie urbaine & Arts martiaux",
+      "biography_summary": "Aveugle depuis l'enfance suite à un accident chimique, Matt Murdock utilise ses sens hyper-développés pour patrouiller la nuit dans les rues de Hell's Kitchen en tant que justicier.",
+      "signature_quote": "Justice is blind, but I see the truth."
+    },
+    {
+      "id_code": "wolverine",
+      "name": "Wolverine",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Facteur guérisseur",
+        "Squelette en adamantium",
+        "Griffes rétractables",
+        "Instincts sauvages"
+      ],
+      "operational_domain": "Combat rapproché & Opérations spéciales",
+      "biography_summary": "Mutant doté d'un pouvoir de guérison instantanée et de griffes d'adamantium, Logan est un vétéran endurci des missions clandestines et un pilier des X-Men.",
+      "signature_quote": "Je suis le meilleur dans ce que je fais, mais ce que je fais de mieux n'est pas très joli."
+    },
+    {
+      "id_code": "obito_uchiwa_akatsuki",
+      "name": "Obito Uchiwa (version Akatsuki)",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Maîtrise du Kamui",
+        "Manipulation occulte",
+        "Stratège de l'ombre",
+        "Utilisateur du masque"
+      ],
+      "operational_domain": "Infiltration dimensionnelle & Manipulation",
+      "biography_summary": "Agissant sous l'identité de Tobi au sein de l'Akatsuki, il orchestre dans l'ombre les plans de la Lune de Sang pour refondre un monde sans souffrance.",
+      "signature_quote": "Dans ce monde, rien ne se déroule par hasard. Ce qui est, est."
+    },
+    {
+      "id_code": "joker",
+      "name": "Le Joker",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Psychopathe chaotique",
+        "Archidnémis de Batman",
+        "Esprit criminel imprévisible",
+        "Humour macabre"
+      ],
+      "operational_domain": "Criminologie urbaine & Terrorisme psychologique",
+      "biography_summary": "Ennemi juré et absolu de Batman, le Joker est un agent du chaos au rire glaçant qui cherche constamment à briser la santé mentale du Chevalier Noir à travers des attentats et des pièges sadiques.",
+      "signature_quote": "Il suffit d'une seule mauvaise journée pour réduire l'homme le plus sain d'esprit à la folie."
+    },
+    {
+      "id_code": "pingouin_oswald_cobblepot",
+      "name": "Le Pingouin (Oswald Cobblepot)",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Parrain de la pègre",
+        "Tacticien mafieux",
+        "Parapluies piégés",
+        "Ambitieux"
+      ],
+      "operational_domain": "Criminalité organisée & Trafics",
+      "biography_summary": "Seigneur du crime influent de Gotham, Oswald Cobblepot dissimule ses activités illégales et son empire mafieux derrière des façades respectables comme son club mondain, l'Iceberg Lounge.",
+      "signature_quote": "Dans cette ville, la classe ne s'achète pas, elle se prend au calibre."
+    },
+    {
+      "id_code": "double_face_harvey_dent",
+      "name": "Double-Face (Harvey Dent)",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Ancien procureur intègre",
+        "Obsession du hasard",
+        "Dualité psychologique",
+        "Utilisation d'une pièce de monnaie"
+      ],
+      "operational_domain": "Criminologie judiciaire & Gangstérisme",
+      "biography_summary": "Ancien procureur idéaliste de Gotham, Harvey Dent a basculé dans le crime après qu'un complot criminel l'a marqué au visage, s'en remettant désormais systématiquement au pile ou face pour juger ses victimes.",
+      "signature_quote": "Le monde n'a pas de sens, donc le hasard décide de tout."
+    },
+    {
+      "id_code": "homme_mystere_riddler",
+      "name": "L'Homme-Mystère (Riddler / Edward Nigma)",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Intellect supérieur",
+        "Obsession des énigmes",
+        "Pièges intellectuels",
+        "Narcissique"
+      ],
+      "operational_domain": "Criminologie informatique & Pièges tactiques",
+      "biography_summary": "Criminel intellectuel de Gotham, Edward Nigma défie constamment Batman et les autorités en disséminant des énigmes complexes et des trophées machiavéliques à travers toute la ville.",
+      "signature_quote": "Qu'est-ce qui est grand, vert et qui met Batman en échec à chaque coin de rue ?"
+    },
+    {
+      "id_code": "catwoman_selina_kyle",
+      "name": "Catwoman (Selina Kyle)",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Cambrioleuse d'élite",
+        "Agilité féline",
+        "Ambiguïté morale",
+        "Relation complexe avec Batman"
+      ],
+      "operational_domain": "Cambriolage haut de gamme & Infiltration",
+      "biography_summary": "Voleuse experte aux mœurs indépendantes, Selina Kyle alterne constamment entre la pègre et la défense des opprimés, entretenant une romance tumultueuse et ambiguë avec le Chevalier Noir.",
+      "signature_quote": "Je ne suis ni une ennemie, ni une alliée... je suis juste insaisissable."
+    },
+    {
+      "id_code": "bane",
+      "name": "Bane",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Force surhumaine par le venin",
+        "Tacticien hors pair",
+        "Brutalité méthodique",
+        "Détermination physique"
+      ],
+      "operational_domain": "Combat rapproché & Tactique de rupture",
+      "biography_summary": "Colosse surpuissant issu des geôles de Peña Duro, Bane combine un intellect redoutable à une dépendance au venin qui lui a permis de briser physiquement le dos de Batman.",
+      "signature_quote": "Tu penses que les ténèbres sont ton allié ? Je suis né dedans, façonné par elles."
+    },
+    {
+      "id_code": "ras_al_ghul",
+      "name": "Ra's al Ghul",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "L'Immortel",
+        "Chef de la Ligue des Assassins",
+        "Visionnaire extrémiste",
+        "Maître stratège"
+      ],
+      "operational_domain": "Terrorisme mondial & Arts martiaux d'élite",
+      "biography_summary": "Chef séculaire de la Ligue des Assassins, Ra's al Ghul cherche à purifier l'humanité à travers des crises planétaires d'envergure, tout en considérant Batman comme son digne successeur potentiel.",
+      "signature_quote": "Le monde est malade, Batman, et la seule solution est de le purger par le feu."
+    },
+    {
+      "id_code": "epouvantail_jonathan_crane",
+      "name": "L'Épouvantail (Jonathan Crane)",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Maître de la peur",
+        "Toxine hallucinogène",
+        "Ancien psychiatre",
+        "Sadique méthodique"
+      ],
+      "operational_domain": "Psychologie criminelle & Armement chimique",
+      "biography_summary": "Ancien professeur de psychologie et psychiatre, Jonathan Crane emploie des gaz hallucinogènes de sa composition pour exploiter les phobies les plus profondes de ses victimes et de la ville entière.",
+      "signature_quote": "La peur est la seule émotion authentique que l'homme puisse éprouver."
+    },
+    {
+      "id_code": "mr_freeze_victor_fries",
+      "name": "Mr. Freeze (Victor Fries)",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Scientifique cryogénique",
+        "Armure thermique",
+        "Quête obsessionnelle pour sa femme",
+        "Froid et méthodique"
+      ],
+      "operational_domain": "Cryogénie & Infiltration technologique",
+      "biography_summary": "Brillant scientifique condamné à vivre dans un environnement glacial à la suite d'un accident de laboratoire, il commet des crimes uniquement pour financer le remède de sa femme cryogénisée.",
+      "signature_quote": "La glace est froide, mais mon cœur l'est encore plus sans elle."
+    },
+    {
+      "id_code": "poison_ivy_pamela_isley",
+      "name": "Poison Ivy (Pamela Isley)",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Écoterroriste",
+        "Contrôle des plantes",
+        "Phéromones de séduction",
+        "Militante radicale de la nature"
+      ],
+      "operational_domain": "Botanique criminelle & Écoterrorisme",
+      "biography_summary": "Botaniste généticienne transformée par des toxines végétales, Pamela Isley voue sa vie à l'éradication de l'humanité polluante au profit du règne végétal.",
+      "signature_quote": "Les plantes n'ont pas besoin de vos mensonges pour pousser."
+    },
+    {
+      "id_code": "harley_quinn",
+      "name": "Harley Quinn",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Ancienne psychiatre",
+        "Imprévisible et acrobatique",
+        "Compagne du Joker",
+        "Évolution émancipée"
+      ],
+      "operational_domain": "Criminologie urbaine & Acrobatie tactique",
+      "biography_summary": "Ancienne psychiatre de l'asile d'Arkham tombée amoureuse du Joker, Harley Quinn a embrassé une vie de folie criminelle avant de s'émanciper peu à peu de son emprise toxique.",
+      "signature_quote": "Il n'y a pas de plaisir sans un peu de chaos !"
+    },
+    {
+      "id_code": "killer_croc_waylon_jones",
+      "name": "Killer Croc (Waylon Jones)",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Mutation reptilienne",
+        "Force physique colossale",
+        "Cannibalisme",
+        "Résistance souterraine"
+      ],
+      "operational_domain": "Combat de mêlée & Égouts de Gotham",
+      "biography_summary": "Affligé d'une maladie génétique rare qui lui confère l'apparence et la force d'un reptile, Waylon Jones hante les égouts de Gotham en prédateur redoutable.",
+      "signature_quote": "Sous la surface, c'est moi qui dicte la loi."
+    },
+    {
+      "id_code": "clayface_basil_karlo",
+      "name": "Clayface (Basil Karlo)",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Métamorphe argileux",
+        "Ancien acteur",
+        "Imposture universelle",
+        "Plasticité corporelle"
+      ],
+      "operational_domain": "Infiltration & Espionnage criminel",
+      "biography_summary": "Ancien acteur de cinéma transformé en monstre d'argile instable, Basil Karlo peut modeler son corps pour prendre l'apparence de n'importe quel être vivant.",
+      "signature_quote": "Je peux être qui tu veux, Batman... même ton pire cauchemar."
+    },
+    {
+      "id_code": "ventriloque_arnold_wesker",
+      "name": "Le Ventriloque (Arnold Wesker et Scarface)",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Double personnalité mafieuse",
+        "Contrôle par la marionnette Scarface",
+        "Timide et terrifiant",
+        "Gangstérisme théâtral"
+      ],
+      "operational_domain": "Criminalité organisée & Manipulation",
+      "biography_summary": "Arnold Wesker, homme timide et soumis, extériorise sa part d'ombre à travers Scarface, une marionnette de bois impitoyable qui dirige un clan mafieux.",
+      "signature_quote": "C'est moi qui tiens les ficelles ici, minable !"
+    },
+    {
+      "id_code": "man_bat_kirk_langstrom",
+      "name": "Man-Bat (Kirk Langstrom)",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Scientifique transformé en chauve-souris",
+        "Vol nocturne",
+        "Instincts bestiaux",
+        "Double tragique"
+      ],
+      "operational_domain": "Attaque aérienne & Zoologie criminelle",
+      "biography_summary": "Le zoologiste Kirk Langstrom s'est injecté un sérum expérimental à base d'ADN de chauve-souris, se transformant périodiquement en une créature volante incontrôlable.",
+      "signature_quote": "La science a fait de moi une bête de la nuit !"
+    },
+    {
+      "id_code": "deadshot_floyd_lawton",
+      "name": "Deadshot (Floyd Lawton)",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Tireur d'élite infaillible",
+        "Mercenaire professionnel",
+        "Armement de précision",
+        "Froid et cynique"
+      ],
+      "operational_domain": "Assassinat & Opérations spéciales",
+      "biography_summary": "Mercenaire redoutable ne ratant jamais sa cible, Floyd Lawton loue ses services au plus offrant tout en entretenant un code d'honneur très personnel.",
+      "signature_quote": "Je ne rate jamais ma cible. Jamais."
+    },
+    {
+      "id_code": "deathstroke_slade_wilson",
+      "name": "Deathstroke (Slade Wilson)",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Mercenaire amélioré",
+        "Maître d'armes et d'arts martiaux",
+        "Tacticien d'élite",
+        "Œil unique"
+      ],
+      "operational_domain": "Tactique militaire & Mercenariat lourd",
+      "biography_summary": "Ancien soldat des forces spéciales doté de capacités cérébrales et physiques augmentées, Slade Wilson est l'un des assassins les plus redoutables et méthodiques au monde.",
+      "signature_quote": "La guerre n'est pas un art, c'est une science de précision."
+    },
+    {
+      "id_code": "hugo_strange",
+      "name": "Hugo Strange",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Psychiatre mégalomane",
+        "Connaissance de l'identité secrète",
+        "Expérimentateur",
+        "Manipulateur"
+      ],
+      "operational_domain": "Psychologie criminelle & Planification urbaine",
+      "biography_summary": "Brillant psychiatre obsédé par Batman au point de vouloir le remplacer, Hugo Strange est l'un des rares criminels à avoir percé à jour le secret de Bruce Wayne.",
+      "signature_quote": "Sous le masque de Batman se cache un simple mortel que je vais briser."
+    },
+    {
+      "id_code": "cour_des_hiboux",
+      "name": "La Cour des Hiboux",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Société secrète d'aristocrates",
+        "Immortels et corrompus",
+        "Utilisation des Talons comme assassins",
+        "Maîtres occultes de Gotham"
+      ],
+      "operational_domain": "Complot politique & Assassinat occulte",
+      "biography_summary": "Ancienne société secrète composée des familles les plus riches de Gotham, elle tire les ficelles de la ville dans l'ombre depuis des siècles en s'appuyant sur des tueurs ressuscités nommés les Talons.",
+      "signature_quote": "Méfie-toi de la Cour des Hiboux, qui surveille Gotham à chaque heure."
+    },
+    {
+      "id_code": "batman_qui_rit",
+      "name": "Le Batman Qui Rit",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Fusion cauchemardesque de Batman et du Joker",
+        "Multivers sombre",
+        "Intelligence tactique perverse",
+        "Sadisme absolu"
+      ],
+      "operational_domain": "Destruction multidimensionnelle & Tactique corrompue",
+      "biography_summary": "Version alternative et terrifiante de Bruce Wayne contaminée par la folie du Joker, il combine le génie tactique de Batman avec la cruauté psychopathe du clown.",
+      "signature_quote": "Dans mon monde, j'ai gagné... et j'ai emporté toute la lumière avec moi."
+    },
+    {
+      "id_code": "bouffon_vert_norman_osborn",
+      "name": "Le Bouffon Vert (Norman Osborn)",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Ennemi juré de Spider-Man",
+        "Génie scientifique mégalomane",
+        "Armement technologique volant",
+        "Instabilité psychologique"
+      ],
+      "operational_domain": "Technologie militaire & Terrorisme urbain",
+      "biography_summary": "Patron d'Oscorp transformé par un sérum instable qui a décuplé sa force et sa folie, Norman Osborn est le pire cauchemar de Peter Parker, responsable des tragédies les plus sombres de sa vie.",
+      "signature_quote": "Tu ne peux pas gagner, Spider-Man ! Le pouvoir a un prix."
+    },
+    {
+      "id_code": "docteur_octopus_otto_octavius",
+      "name": "Docteur Octopus (Otto Octavius)",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Scientifique aux bras mécaniques",
+        "Intellect supérieur",
+        "Stratège arrogant",
+        "Ancien mentor de Peter Parker"
+      ],
+      "operational_domain": "Recherche scientifique & Tactique robotique",
+      "biography_summary": "Brillant physicien nucléaire dont le harnais à quatre bras mécaniques s'est fusionné à son système nerveux, il représente l'égal intellectuel de Peter Parker, allant jusqu'à s'emparer temporairement de son corps.",
+      "signature_quote": "L'intellect prime sur la force brute, toujours !"
+    },
+    {
+      "id_code": "vautour_adrian_toomes",
+      "name": "Le Vautour (Adrian Toomes)",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Harnais de vol aéronautique",
+        "Ingénieur inventif",
+        "Vétéran criminel",
+        "Vol plané"
+      ],
+      "operational_domain": "Vol à main armée & Attaque aérienne",
+      "biography_summary": "Ancien ingénieur génial ruiné par ses associés, Adrian Toomes a développé un harnais technologique lui permettant de voler et de compenser sa vieillesse par une force redoutable.",
+      "signature_quote": "Les hauteurs appartiennent à ceux qui savent s'élever."
+    },
+    {
+      "id_code": "lezard_curt_connors",
+      "name": "Le Lézard (Dr. Curt Connors)",
+      "classification": "Figure historique",
+      "core_traits": [
+        "Généticien transformé en monstre",
+        "Régénération reptilienne",
+        "Double personnalité",
+        "Expert en biologie"
+      ],
+      "operational_domain": "Biologie génétique & Combat au corps à corps",
+      "biography_summary": "Brillant biologiste cherchant à regagner son bras amputé grâce à l'ADN de reptile, Curt Connors se métamorphose régulièrement en une créature sanguinaire assoiffée de domination.",
+      "signature_quote": "L'évolution humaine est une impasse ; le règne des reptiles approche."
+    },
+    {
+      "id_code": "electro_max_dillon",
+      "name": "Electro (Max Dillon)",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Manipulation de l'électricité",
+        "Batterie humaine vivante",
+        "Instable et colérique",
+        "Puissance énergétique"
+      ],
+      "operational_domain": "Sabotage électrique & Combat énergétique",
+      "biography_summary": "Ancien électricien frappé par la foudre lors d'un accident de travail, Max Dillon est devenu un être vivant pur d'électricité capable de surcharger les réseaux de la ville.",
+      "signature_quote": "Je suis le maître de l'énergie, personne ne peut m'éteindre !"
+    },
+    {
+      "id_code": "homme_sable_flint_marko",
+      "name": "L'Homme-Sable (Flint Marko)",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Corps transformé en sable",
+        "Plasticité granulaire",
+        "Criminel endurci",
+        "Fuyard insaisissable"
+      ],
+      "operational_domain": "Sabotage & Infiltration granulaire",
+      "biography_summary": "Suite à une exposition accidentelle dans une base nucléaire, Flint Marko peut moduler, disperser et solidifier son corps en sable à volonté pour commettre ses méfaits.",
+      "signature_quote": "Tu ne peux pas retenir du sable entre tes doigts, Spider-Man."
+    },
+    {
+      "id_code": "mysterio_quentin_beck",
+      "name": "Mysterio (Quentin Beck)",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Maître des illusions",
+        "Expert en effets spéciaux",
+        "Manipulation mentale",
+        "Showman théâtral"
+      ],
+      "operational_domain": "Illusionnisme & Désinformation",
+      "biography_summary": "Ancien cascadeur et technicien d'effets spéciaux d'Hollywood, Quentin Beck utilise des hologrammes, des fumées chimiques et la suggestion pour faire perdre la raison à ses adversaires.",
+      "signature_quote": "Ce que vous croyez voir n'est que le reflet de ce que je veux que vous voyiez."
+    },
+    {
+      "id_code": "kraven_le_chasseur",
+      "name": "Kraven le Chasseur",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Traqueur d'élite",
+        "Obsession du défi ultime",
+        "Sérums d'agilité",
+        "Code d'honneur de chasseur"
+      ],
+      "operational_domain": "Pistage & Combat tactique de survie",
+      "biography_summary": "Chasseur hors pair cherchant à prouver sa suprématie en capturant Spider-Man, Kraven considère le tisseur comme le trophée ultime de sa longue carrière.",
+      "signature_quote": "Je vais chasser la plus grande proie que cette terre ait portée."
+    },
+    {
+      "id_code": "venom_eddie_brock",
+      "name": "Venom (Eddie Brock)",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Symbiote extraterrestre haineux",
+        "Connaissance de l'identité de Peter",
+        "Force brute immense",
+        "Évolution vers l'anti-héros"
+      ],
+      "operational_domain": "Combat brutal & Infiltration symbiotique",
+      "biography_summary": "Journaliste déchu lié à un symbiote rejeté par Spider-Man, Eddie Brock partage une haine viscérale commune envers Peter Parker avant d'évoluer vers le rôle de protecteur.",
+      "signature_quote": "Nous sommes Venom !"
+    },
+    {
+      "id_code": "carnage_cletus_kasady",
+      "name": "Carnage (Cletus Kasady)",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Symbiote psychopathe",
+        "Tueur en série sanguinaire",
+        "Chaos absolu",
+        "Instabilité destructrice"
+      ],
+      "operational_domain": "Massacre indiscriminé & Terrorisme psychologique",
+      "biography_summary": "Le tueur en série Cletus Kasady fusionné avec la progéniture écarlate du symbiote de Venom, incarnant la folie meurtrière pure et le chaos le plus total.",
+      "signature_quote": "Le monde est un tableau blanc, et nous sommes la peinture rouge !"
+    },
+    {
+      "id_code": "caid_wilson_fisk",
+      "name": "Le Caïd (Wilson Fisk)",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Parrain mafieux ultime",
+        "Force physique colossale sous une apparence massive",
+        "Maître de la corruption",
+        "Esprit politique redoutable"
+      ],
+      "operational_domain": "Criminalité organisée & Politique de l'ombre",
+      "biography_summary": "Maître incontesté de la pègre new-yorkaise, Wilson Fisk dirige un empire criminel tout en s'abritant derrière une façade de philanthrope respecté et d'homme d'affaires intouchable.",
+      "signature_quote": "New York m'appartient. C'est aussi simple que cela."
+    },
+    {
+      "id_code": "shocker_herman_schultz",
+      "name": "Le Shocker (Herman Schultz)",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Gants à vibrations sismiques",
+        "Ingénieur braqueur",
+        "Pragmatique",
+        "Combattant tactique"
+      ],
+      "operational_domain": "Braquage de haute sécurité & Sabotage",
+      "biography_summary": "Ingénieur de génie reconverti dans le braquage, Herman Schultz a conçu une paire de gants générant des ondes de choc sismiques dévastatrices.",
+      "signature_quote": "Ces ondes sismiques vont vous réduire en miettes."
+    },
+    {
+      "id_code": "bouffon_vert_ii_harry_osborn",
+      "name": "Le Bouffon Vert II / Hobgoblin (Harry Osborn / Roderick Kingsley)",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Successeurs technologiques",
+        "Héritage empoisonné",
+        "Acrobatie aérienne",
+        "Conflit psychologique"
+      ],
+      "operational_domain": "Technologie militaire & Vengeance",
+      "biography_summary": "Rivaux ou héritiers du premier Bouffon Vert, ces personnages reprennent l'arsenal technologique d'Oscorp pour tourmenter Spider-Man au nom de rancunes personnelles.",
+      "signature_quote": "Le nom Osborn ne mourra jamais dans l'ombre !"
+    },
+    {
+      "id_code": "scorpion_mac_gargan",
+      "name": "Le Scorpion (Mac Gargan)",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Cyborg-scorpion",
+        "Queue robotique mortelle",
+        "Ancien détective aigri",
+        "Force surhumaine"
+      ],
+      "operational_domain": "Combat rapproché & Assassinat",
+      "biography_summary": "Ancien détective privé engagé par J. Jonah Jameson pour traquer Spider-Man, Mac Gargan a subi une mutation permanente l'équipant d'une queue cybernétique redoutable.",
+      "signature_quote": "Cette fois, c'est mon dard qui aura le dernier mot."
+    },
+    {
+      "id_code": "rhino_aleksei_sytsevich",
+      "name": "Le Rhino (Aleksei Sytsevich)",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Armure indestructible en forme de rhinocéros",
+        "Force brute dévastatrice",
+        "Intellect limité",
+        "Charge frontale"
+      ],
+      "operational_domain": "Destruction massive & Force de frappe",
+      "biography_summary": "Mercenaire doté d'une armure polymère ultra-résistante simulant la peau d'un rhinocéros, Aleksei Sytsevich privilégie toujours la force brute pour tout écraser sur son passage.",
+      "signature_quote": "Rien ne peut arrêter le Rhino quand il charge !"
+    },
+    {
+      "id_code": "chameleon_dmitri_smerdyakov",
+      "name": "Chameleon (Dmitri Smerdyakov)",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Maître du déguisement",
+        "Demi-frère de Kraven",
+        "Mimétisme parfait",
+        "Espion infiltré"
+      ],
+      "operational_domain": "Espionnage industriel & Sabotage d'identité",
+      "biography_summary": "Maître absolu du maquillage et de l'imposture, Dmitri Smerdyakov peut prendre l'apparence physique et vocale de n'importe quel individu pour semer la discorde.",
+      "signature_quote": "Je ne suis personne... et en même temps, je peux être n'importe qui."
+    },
+    {
+      "id_code": "morbius_le_vampire_vivant",
+      "name": "Morbius le vampire vivant",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Scientifique atteint de vampirisme",
+        "Soif de sang",
+        "Capacités de vol plané",
+        "Lutte intérieure"
+      ],
+      "operational_domain": "Biochimie & Chasse nocturne",
+      "biography_summary": "Brillant biochimiste atteint d'une maladie sanguine rare, Michael Morbius s'est transformé en un vampire vivant doté d'une terrible soif de sang qu'il tente de contenir.",
+      "signature_quote": "La science m'a sauvé la vie, mais elle a damné mon âme."
+    },
+    {
+      "id_code": "black_cat_felicia_hardy",
+      "name": "Black Cat (Felicia Hardy)",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Voleuse aux charmes ambigus",
+        "Malchance induite pour les ennemis",
+        "Acrobate",
+        "Romance complexe avec Spidey"
+      ],
+      "operational_domain": "Cambriolage & Infiltration de luxe",
+      "biography_summary": "Fascinante cambrioleuse aux cheveux blancs, Felicia Hardy oscille entre le vol de haute voltige et une idylle passionnée mais compliquée avec le tisseur.",
+      "signature_quote": "On dit que croiser un chat noir porte malheur... pour toi, c'est une certitude."
+    },
+    {
+      "id_code": "tombstone_lonnie_lincoln",
+      "name": "Tombstone (Lonnie Lincoln)",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Peau ultra-résistante",
+        "Caïd de la pègre new-yorkaise",
+        "Intimidateur",
+        "Criminel impitoyable"
+      ],
+      "operational_domain": "Criminalité organisée & Extorsion",
+      "biography_summary": "Criminel redoutable albinos doté d'une peau semblable à l'acier et d'une force surhumaine, Lonnie Lincoln règne par la terreur sur les bas-fonds de New York.",
+      "signature_quote": "La douleur est un luxe que je ne ressens plus."
+    },
+    {
+      "id_code": "bouffon_rouge_super_bouffon",
+      "name": "Le Bouffon Rouge / Super-Bouffon",
+      "classification": "Entité de fiction",
+      "core_traits": [
+        "Fusions d'ennemis surpuissants",
+        "Technologie et symbiote combinés",
+        "Armement ultime du bouffon",
+        "Menace globale"
+      ],
+      "operational_domain": "Terrorisme technologique & Destruction",
+      "biography_summary": "Résultant d'expérimentations croisant la technologie des bouffons et la puissance destructrice des symbiotes, cette entité représente l'apogée des menaces combinées contre Spider-Man.",
+      "signature_quote": "La puissance réunie de nos cauchemars va t'anéantir définitivement."
+    }
+  ]
 }
