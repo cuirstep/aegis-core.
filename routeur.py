@@ -1,56 +1,40 @@
-from bibliotheque import GrandeBibliotheque
-
 class MetaRouter:
+    """
+    Le Meta-Router d'AEGIS-CORE : Analyse la requête de l'utilisateur,
+    détermine la stratégie de réponse et coordonne les modules.
+    """
     def __init__(self):
-        print("[AEGIS-CORE] Initialisation du Meta-Router v2.0 sur macOS (Python 3.14).")
-        self.bibliotheque = GrandeBibliotheque()
+        self.version = "2.0-beta"
 
-    def process_request(self, query: str, action: str = "analyser", cle_biblio: str = None, contenu: str = None):
-        print(f"\n[Meta-Router] Analyse de la requête entrante : '{query}'")
+    def analyser_requete(self, prompt):
+        """Analyse le texte pour adapter le comportement d'AEGIS."""
+        prompt_lower = prompt.lower()
         
-        # Étape 1 : Contrôle de syntaxe
-        if not query or not query.strip():
-            return {
-                "status": "ERROR", 
-                "control_layer": "Syntaxe",
-                "message": "Erreur : Requête vide ou invalide rejetée par le protocole."
-            }
-            
-        # Quintuple Contrôle Validé
-        print("[Quintuple Contrôle] Syntaxe OK | Logique OK | Contexte validé | Sécurité OK | Intégrité OK.")
+        # Détection du domaine ou de l'intention
+        if "code" in prompt_lower or "python" in prompt_lower or "script" in prompt_lower:
+            return {"mode": "TECHNIQUE", "priorite": "Haute", "description": "Génération ou analyse de code source."}
+        elif "stratégie" in prompt_lower or "projet" in prompt_lower or "plan" in prompt_lower:
+            return {"mode": "STRATÉGIQUE", "priorite": "Maximale", "description": "Planification et structuration de projet étape par étape."}
+        elif "qui es-tu" in prompt_lower or "aegis" in prompt_lower:
+            return {"mode": "IDENTITÉ", "priorite": "Standard", "description": "Rappel des directives système AEGIS-CORE."}
+        else:
+            return {"mode": "STANDARD", "priorite": "Normale", "description": "Discussion générale et assistance polyvalente."}
 
-        # Gestion des actions avec la Grande Bibliothèque
-        if action == "stocker" and cle_biblio and contenu:
-            self.bibliotheque.stocker(cle_biblio, contenu)
-            return {"status": "SUCCESS", "action": "stockage_effectué"}
-            
-        elif action == "recuperer" and cle_biblio:
-            donnee = self.bibliotheque.recuperer(cle_biblio)
-            return {"status": "SUCCESS", "donnee_recuperee": donnee}
+    def router_reponse(self, prompt, bibliotheque_instance):
+        """Gère l'acheminement de la réponse en fonction de l'analyse."""
+        contexte_analyse = self.analyser_requete(prompt)
         
+        # Si la requête concerne un personnage ou une figure de la base
+        kb = bibliotheque_instance.charger_connaissances()
+        characters = kb.get("characters", [])
+        
+        reponse_specifique = None
+        for char in characters:
+            if char["name"].lower() in prompt.lower() or char["id_code"] in prompt.lower():
+                reponse_specifique = f"📊 **Profil identifié dans les archives** : {char['name']} ({char['classification']})\n- **Domaine** : {char['operational_domain']}\n- **Biographie** : {char['biography_summary']}\n- *Citation signature* : \"{char['signature_quote']}\""
+                break
+
         return {
-            "status": "SUCCESS",
-            "control_layer": "Quintuple Contrôle Validé",
-            "routed_to": "GPT-6 Astra / Noyau Local",
-            "payload": query
+            "analyse": contexte_analyse,
+            "information_archive": reponse_specifique
         }
-
-if __name__ == "__main__":
-    aegis = MetaRouter()
-    
-    # Test de stockage
-    res_stock = aegis.process_request(
-        query="Sauvegarder les plans directeurs", 
-        action="stocker", 
-        cle_biblio="plans_v1", 
-        contenu="Architecture unifiée AEGIS-CORE - 2026"
-    )
-    print("Résultat :", res_stock)
-    
-    # Test de récupération
-    res_recup = aegis.process_request(
-        query="Afficher les plans directeurs", 
-        action="recuperer", 
-        cle_biblio="plans_v1"
-    )
-    print("Résultat :", res_recup)
