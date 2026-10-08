@@ -34,7 +34,7 @@ with st.sidebar:
         
     st.markdown("---")
     st.markdown("### État du Système")
-    st.info("Statut : Opérationnel\n\nMode : Ultra-Rapide (Flash)")
+    st.info("Statut : Opérationnel\n\nMode : Streaming Ultra-Rapide")
 
 # --- MAIN INTERFACE ---
 st.title("🛡️ AEGIS-CORE // INTERFACE OPÉRATIONNELLE")
@@ -47,29 +47,34 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# --- CHAT INPUT & MODEL ---
+# --- CHAT INPUT & STREAMING MODEL ---
 if prompt := st.chat_input("Entrez votre directive ou idée de projet, Commandant..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
     with st.chat_message("assistant"):
-        reponse_finale = ""
         if not cle_active:
             reponse_finale = "⚠️ **Erreur** : Configure ta clé dans les Secrets de Streamlit."
+            st.markdown(reponse_finale)
         else:
             try:
-                # Utilisation de l'alias flash ultra-rapide
+                # Modèle flash ultra-rapide avec streaming activé
                 model = genai.GenerativeModel('gemini-flash-latest')
                 contexte = (
-                    "Tu es AEGIS-CORE, un assistant IA tactique, ultra-polyvalent et réactif. "
-                    "Réponds de manière concise, percutante et ultra-rapide. "
+                    "Tu es AEGIS-CORE, un assistant IA tactique et ultra-rapide. "
+                    "Réponds immédiatement et directement. "
                     "Tu t'adresses toujours à l'utilisateur en l'appelant 'Commandant'."
                 )
-                response = model.generate_content(f"{contexte}\n\nRequête du Commandant : {prompt}")
-                reponse_finale = response.text
+                
+                # Appel en flux (streaming) pour l'affichage en direct
+                response = model.generate_content(f"{contexte}\n\nRequête du Commandant : {prompt}", stream=True)
+                
+                # Affichage dynamique mot par mot
+                reponse_finale = st.write_stream(chunk.text for chunk in response)
+                
             except Exception as e:
                 reponse_finale = f"❌ Erreur technique : {str(e)}"
+                st.markdown(reponse_finale)
 
-        st.markdown(reponse_finale)
         st.session_state.messages.append({"role": "assistant", "content": reponse_finale})
