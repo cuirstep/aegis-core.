@@ -9,27 +9,29 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- BARRE LATÉRALE - PARAMÈTRES ---
+# --- CONFIGURATION DE LA CLÉ ---
+# Récupération depuis les secrets Streamlit
+try:
+    api_key = st.secrets["GEMINI_API_KEY"]
+except Exception:
+    api_key = ""
+
+if api_key:
+    os.environ["GEMINI_API_KEY"] = api_key
+    genai.configure(api_key=api_key)
+    cle_active = True
+else:
+    cle_active = False
+
+# --- BARRE LATÉRALE ---
 with st.sidebar:
     st.title("PARAMÈTRES DU SYSTÈME")
     st.markdown("---")
     
-    # Récupération de la clé API depuis la saisie ou les secrets Streamlit
-    api_key_input = st.text_input("Clé API Google Gémeaux", type="password", placeholder="AIzaSy...")
-    
-    api_key = api_key_input
-    if not api_key:
-        try:
-            api_key = st.secrets.get("GEMINI_API_KEY", "")
-        except Exception:
-            pass
-
-    if api_key:
-        os.environ["GEMINI_API_KEY"] = api_key
-        genai.configure(api_key=api_key)
-        st.success("Liaison neuronale établie.")
+    if cle_active:
+        st.success("Liaison neuronale établie (Sécurisée).")
     else:
-        st.warning("Veuillez entrer une clé API valide.")
+        st.error("⚠️ Clé API manquante dans les Secrets Streamlit.")
         
     st.markdown("---")
     st.markdown("### État du Système")
@@ -39,39 +41,32 @@ with st.sidebar:
 st.title("🛡️ AEGIS-CORE // INTERFACE OPÉRATIONNELLE")
 st.markdown("Système d'assistance globale, stratégique et du quotidien.")
 
-# Initialisation de l'historique de conversation
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Affichage de l'historique
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
 # --- GESTION DES ENTRÉES ---
 if prompt := st.chat_input("Entrez votre directive ou idée de projet, Commandant..."):
-    # Ajout du message utilisateur
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    # Génération de la réponse de l'assistant en direct
     with st.chat_message("assistant"):
         reponse_finale = ""
-        current_api_key = os.environ.get("GEMINI_API_KEY")
-        
-        if not current_api_key:
-            reponse_finale = "⚠️ **Erreur** : Clé API manquante dans les paramètres."
+        if not cle_active:
+            reponse_finale = "⚠️ **Erreur** : Configure ta clé dans les Secrets de Streamlit."
         else:
             try:
-                # Utilisation directe et stable du modèle Gemini
+                # Utilisation du modèle flash stable
                 model = genai.GenerativeModel('gemini-1.5-flash')
                 contexte = (
                     "Tu es AEGIS-CORE, un assistant IA tactique, ultra-polyvalent, intelligent et réactif, "
-                    "capable de répondre à une vaste variété de questions du quotidien (culture, technique, rédaction). "
+                    "capable de répondre à une vaste variété de questions du quotidien. "
                     "Tu t'adresses toujours à l'utilisateur en l'appelant 'Commandant'."
                 )
-                
                 response = model.generate_content(f"{contexte}\n\nRequête du Commandant : {prompt}")
                 reponse_finale = response.text
             except Exception as e:
