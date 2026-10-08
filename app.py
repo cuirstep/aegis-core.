@@ -2,15 +2,14 @@ import streamlit as st
 import os
 import google.generativeai as genai
 
-# --- CONFIGURATION DE LA PAGE ---
+# --- PAGE CONFIG ---
 st.set_page_config(
     page_title="AEGIS-CORE // OS",
     page_icon="🛡️",
     layout="wide"
 )
 
-# --- CONFIGURATION DE LA CLÉ ---
-# Récupération depuis les secrets Streamlit
+# --- API KEY CONFIG ---
 try:
     api_key = st.secrets["GEMINI_API_KEY"]
 except Exception:
@@ -23,7 +22,7 @@ if api_key:
 else:
     cle_active = False
 
-# --- BARRE LATÉRALE ---
+# --- SIDEBAR ---
 with st.sidebar:
     st.title("PARAMÈTRES DU SYSTÈME")
     st.markdown("---")
@@ -37,7 +36,7 @@ with st.sidebar:
     st.markdown("### État du Système")
     st.info("Statut : Opérationnel\n\nMode : Polyvalent & Quotidien")
 
-# --- INTERFACE PRINCIPALE ---
+# --- MAIN INTERFACE ---
 st.title("🛡️ AEGIS-CORE // INTERFACE OPÉRATIONNELLE")
 st.markdown("Système d'assistance globale, stratégique et du quotidien.")
 
@@ -48,7 +47,7 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# --- GESTION DES ENTRÉES ---
+# --- CHAT INPUT & MODEL ---
 if prompt := st.chat_input("Entrez votre directive ou idée de projet, Commandant..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
@@ -60,7 +59,7 @@ if prompt := st.chat_input("Entrez votre directive ou idée de projet, Commandan
             reponse_finale = "⚠️ **Erreur** : Configure ta clé dans les Secrets de Streamlit."
         else:
             try:
-                # Utilisation du modèle flash stable
+                # Utilisation du modèle stable 1.5 flash
                 model = genai.GenerativeModel('gemini-1.5-flash')
                 contexte = (
                     "Tu es AEGIS-CORE, un assistant IA tactique, ultra-polyvalent, intelligent et réactif, "
