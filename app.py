@@ -59,7 +59,7 @@ if prompt := st.chat_input("Entrez votre directive ou idée de projet, Commandan
             reponse_finale = "⚠️ **Erreur** : Configure ta clé dans les Secrets de Streamlit."
         else:
             try:
-                # Utilisation du modèle actif gemini-3.8-flash
+                # Test avec gemini-3.8-flash
                 model = genai.GenerativeModel('gemini-3.8-flash')
                 contexte = (
                     "Tu es AEGIS-CORE, un assistant IA tactique, ultra-polyvalent, intelligent et réactif, "
@@ -67,9 +67,12 @@ if prompt := st.chat_input("Entrez votre directive ou idée de projet, Commandan
                     "Tu t'adresses toujours à l'utilisateur en l'appelant 'Commandant'."
                 )
                 response = model.generate_content(f"{contexte}\n\nRequête du Commandant : {prompt}")
-                reponse_finale = response.text
+                if response and hasattr(response, 'text'):
+                    reponse_finale = response.text
+                else:
+                    reponse_finale = "⚠️ Le modèle a renvoyé une réponse vide."
             except Exception as e:
-                reponse_finale = f"❌ Erreur technique : {str(e)}"
+                reponse_finale = f"❌ Erreur technique détaillée : {str(e)}"
 
         st.markdown(reponse_finale)
         st.session_state.messages.append({"role": "assistant", "content": reponse_finale})
