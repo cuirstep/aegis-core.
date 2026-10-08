@@ -34,7 +34,7 @@ with st.sidebar:
         
     st.markdown("---")
     st.markdown("### État du Système")
-    st.info("Statut : Opérationnel\n\nMode : Polyvalent & Quotidien")
+    st.info("Statut : Opérationnel\n\nMode : Ultra-Rapide & Tactique")
 
 # --- MAIN INTERFACE ---
 st.title("🛡️ AEGIS-CORE // INTERFACE OPÉRATIONNELLE")
@@ -59,20 +59,17 @@ if prompt := st.chat_input("Entrez votre directive ou idée de projet, Commandan
             reponse_finale = "⚠️ **Erreur** : Configure ta clé dans les Secrets de Streamlit."
         else:
             try:
-                # Test avec gemini-3.8-flash
+                # Utilisation du modèle de référence ultra-rapide gemini-3.8-flash
                 model = genai.GenerativeModel('gemini-3.8-flash')
                 contexte = (
                     "Tu es AEGIS-CORE, un assistant IA tactique, ultra-polyvalent, intelligent et réactif, "
-                    "capable de répondre à une vaste variété de questions du quotidien. "
+                    "capable de répondre instantanément à une vaste variété de questions. "
                     "Tu t'adresses toujours à l'utilisateur en l'appelant 'Commandant'."
                 )
                 response = model.generate_content(f"{contexte}\n\nRequête du Commandant : {prompt}")
-                if response and hasattr(response, 'text'):
-                    reponse_finale = response.text
-                else:
-                    reponse_finale = "⚠️ Le modèle a renvoyé une réponse vide."
+                reponse_finale = response.text
             except Exception as e:
-                reponse_finale = f"❌ Erreur technique détaillée : {str(e)}"
+                reponse_finale = f"❌ Erreur technique : {str(e)}"
 
         st.markdown(reponse_finale)
         st.session_state.messages.append({"role": "assistant", "content": reponse_finale})
