@@ -34,7 +34,7 @@ with st.sidebar:
         
     st.markdown("---")
     st.markdown("### État du Système")
-    st.info("Statut : Opérationnel\n\nMode : Ultra-Rapide & Tactique")
+    st.info("Statut : Opérationnel\n\nMode : Ultra-Rapide (Flash)")
 
 # --- MAIN INTERFACE ---
 st.title("🛡️ AEGIS-CORE // INTERFACE OPÉRATIONNELLE")
@@ -59,11 +59,11 @@ if prompt := st.chat_input("Entrez votre directive ou idée de projet, Commandan
             reponse_finale = "⚠️ **Erreur** : Configure ta clé dans les Secrets de Streamlit."
         else:
             try:
-                # Utilisation du modèle de référence ultra-rapide gemini-3.8-flash
-                model = genai.GenerativeModel('gemini-3.8-flash')
+                # Utilisation de l'alias flash ultra-rapide
+                model = genai.GenerativeModel('gemini-flash-latest')
                 contexte = (
-                    "Tu es AEGIS-CORE, un assistant IA tactique, ultra-polyvalent, intelligent et réactif, "
-                    "capable de répondre instantanément à une vaste variété de questions. "
+                    "Tu es AEGIS-CORE, un assistant IA tactique, ultra-polyvalent et réactif. "
+                    "Réponds de manière concise, percutante et ultra-rapide. "
                     "Tu t'adresses toujours à l'utilisateur en l'appelant 'Commandant'."
                 )
                 response = model.generate_content(f"{contexte}\n\nRequête du Commandant : {prompt}")
