@@ -59,8 +59,8 @@ if prompt := st.chat_input("Entrez votre directive ou idée de projet, Commandan
             reponse_finale = "⚠️ **Erreur** : Configure ta clé dans les Secrets de Streamlit."
         else:
             try:
-                # Utilisation du modèle stable 1.5 flash
-                model = genai.GenerativeModel('gemini-1.5-flash')
+                # Utilisation du modèle actif gemini-2.5-flash
+                model = genai.GenerativeModel('gemini-2.5-flash')
                 contexte = (
                     "Tu es AEGIS-CORE, un assistant IA tactique, ultra-polyvalent, intelligent et réactif, "
                     "capable de répondre à une vaste variété de questions du quotidien. "
