@@ -1,8 +1,6 @@
 import streamlit as st
 import os
 import google.generativeai as genai
-from bibliotheque import BibliothequeMemoire
-from routeur import MetaRouter
 
 # --- CONFIGURATION DE LA PAGE ---
 st.set_page_config(
@@ -11,16 +9,12 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- INITIALISATION DES MODULES ---
-biblio = BibliothequeMemoire()
-router = MetaRouter()
-
 # --- BARRE LATÉRALE - PARAMÈTRES ---
 with st.sidebar:
     st.title("PARAMÈTRES DU SYSTÈME")
     st.markdown("---")
     
-    # Récupération de la clé API depuis la saisie utilisateur ou les secrets Streamlit
+    # Récupération de la clé API depuis la saisie ou les secrets Streamlit
     api_key_input = st.text_input("Clé API Google Gémeaux", type="password", placeholder="AIzaSy...")
     
     api_key = api_key_input
@@ -45,45 +39,43 @@ with st.sidebar:
 st.title("🛡️ AEGIS-CORE // INTERFACE OPÉRATIONNELLE")
 st.markdown("Système d'assistance globale, stratégique et du quotidien.")
 
+# Initialisation de l'historique de conversation
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
+# Affichage de l'historique
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
 # --- GESTION DES ENTRÉES ---
 if prompt := st.chat_input("Entrez votre directive ou idée de projet, Commandant..."):
+    # Ajout du message utilisateur
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    analyse_resultat = router.router_reponse(prompt, biblio)
-    info_archive = analyse_resultat.get("information_archive")
-
+    # Génération de la réponse de l'assistant en direct
     with st.chat_message("assistant"):
-        message_placeholder = st.empty()
         reponse_finale = ""
-
         current_api_key = os.environ.get("GEMINI_API_KEY")
+        
         if not current_api_key:
-            reponse_finale = "⚠️ **Erreur** : Clé API manquante."
+            reponse_finale = "⚠️ **Erreur** : Clé API manquante dans les paramètres."
         else:
             try:
-                # Utilisation d'un modèle standard et robuste
+                # Utilisation directe et stable du modèle Gemini
                 model = genai.GenerativeModel('gemini-1.5-flash')
                 contexte = (
                     "Tu es AEGIS-CORE, un assistant IA tactique, ultra-polyvalent, intelligent et réactif, "
-                    "capable de répondre à une vaste variété de questions du quotidien. "
-                    "Tu t'adresses à l'utilisateur en l'appelant 'Commandant'."
+                    "capable de répondre à une vaste variété de questions du quotidien (culture, technique, rédaction). "
+                    "Tu t'adresses toujours à l'utilisateur en l'appelant 'Commandant'."
                 )
-                if info_archive:
-                    contexte += f"\n\nInfo archive : {info_archive}"
                 
-                response = model.generate_content(f"{contexte}\n\nRequête : {prompt}")
+                response = model.generate_content(f"{contexte}\n\nRequête du Commandant : {prompt}")
                 reponse_finale = response.text
             except Exception as e:
-                reponse_finale = f"❌ Erreur technique de l'IA : {str(e)}"
+                reponse_finale = f"❌ Erreur technique : {str(e)}"
 
-        message_placeholder.markdown(reponse_finale)
+        st.markdown(reponse_finale)
         st.session_state.messages.append({"role": "assistant", "content": reponse_finale})
