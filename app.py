@@ -1,6 +1,7 @@
 import streamlit as st
 import os
-import google.generativeai as genai
+from google import genai
+from groq import Groq
 
 # --- PAGE CONFIG ---
 st.set_page_config(
