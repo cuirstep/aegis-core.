@@ -6,7 +6,7 @@ from groq import Groq
 # --- PAGE CONFIG ---
 st.set_page_config(
     page_title="AEGIS-CORE // OS",
-    page_icon="🛡️",
+    page_icon="🧠",
     layout="wide"
 )
 
@@ -29,7 +29,7 @@ with st.sidebar:
         st.warning("Gemini non configuré")
 
     if client_groq:
-        st.success("Moteur de Secours (Fallback) : Groq / Llama 3.3")
+        st.success("Moteur de Secours (Fallback) : Groq / Llama 3.1 8B")
     else:
         st.warning("Groq non configuré")
 
@@ -39,7 +39,7 @@ with st.sidebar:
     st.info(f"Mémoire contextuelle : {nb_messages} échanges archivés")
 
 # --- MAIN INTERFACE ---
-st.title("🛡️ AEGIS-CORE // INTERFACE OPÉRATIONNELLE")
+st.title("🧠 AEGIS-CORE // INTERFACE OPÉRATIONNELLE")
 st.markdown("Système d'assistance globale avec bascule automatique de secours.")
 
 if "messages" not in st.session_state:
@@ -100,7 +100,7 @@ if prompt := st.chat_input("Entrez votre directive ou idée de projet, Commandan
                     messages_payload.append({"role": m["role"], "content": m["content"]})
 
                 stream = client_groq.chat.completions.create(
-                    model="llama-3.3-70b-versatile",
+                    model="llama-3.1-8b-instant",
                     messages=messages_payload,
                     stream=True,
                 )
