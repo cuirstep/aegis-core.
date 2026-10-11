@@ -99,9 +99,8 @@ if prompt := st.chat_input("Entrez votre directive ou idée de projet, Commandan
                 messages_payload = [{"role": "system", "content": SYSTEM_PROMPT}]
                 for m in st.session_state.messages:
                     messages_payload.append({"role": m["role"], "content": m["content"]})
-
-                stream = client_groq.chat.completions.create(
-                    model="llama3-70b-8192",
+stream = client_groq.chat.completions.create(
+                    model="llama-3.3-70b-versatile",
                     messages=messages_payload,
                     stream=True,
                 )
