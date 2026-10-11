@@ -14,7 +14,6 @@ st.set_page_config(
 gemini_key = st.secrets.get("GEMINI_API_KEY", "")
 groq_key = st.secrets.get("GROQ_API_KEY", "")
 
-# Initialisation correcte du client Google GenAI
 client_gemini = genai.Client(api_key=gemini_key) if gemini_key else None
 client_groq = Groq(api_key=groq_key) if groq_key else None
 
@@ -30,7 +29,7 @@ with st.sidebar:
         st.warning("Gemini non configuré")
 
     if client_groq:
-        st.success("Moteur de Secours (Fallback) : Groq / Llama 3")
+        st.success("Moteur de Secours (Fallback) : Groq / Llama 3.3")
     else:
         st.warning("Groq non configuré")
 
@@ -99,7 +98,8 @@ if prompt := st.chat_input("Entrez votre directive ou idée de projet, Commandan
                 messages_payload = [{"role": "system", "content": SYSTEM_PROMPT}]
                 for m in st.session_state.messages:
                     messages_payload.append({"role": m["role"], "content": m["content"]})
-stream = client_groq.chat.completions.create(
+
+                stream = client_groq.chat.completions.create(
                     model="llama-3.3-70b-versatile",
                     messages=messages_payload,
                     stream=True,
