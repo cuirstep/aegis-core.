@@ -6,16 +6,23 @@ from groq import Groq
 # --- PAGE CONFIG ---
 st.set_page_config(
     page_title="AEGIS-CORE // OS",
-    page_icon="🧠",
+    page_icon="🛡️",
     layout="wide"
 )
 
 # --- API KEYS & CLIENTS INITIALIZATION ---
 gemini_key = st.secrets.get("GEMINI_API_KEY", "")
-groq_key = st.secrets.get("GROQ_API_KEY", "")
-
 client_gemini = genai.Client(api_key=gemini_key) if gemini_key else None
-client_groq = Groq(api_key=groq_key) if groq_key else None
+
+# Récupération dynamique de toutes les clés Groq disponibles dans les secrets
+groq_keys = []
+for i in range(1, 6):  # Permet de gérer jusqu'à 5 clés différentes (GROQ_API_KEY_1, _2, etc.)
+    key = st.secrets.get(f"GROQ_API_KEY_{i}", "")
+    if not key and i == 1:
+        # Rétrocompatibilité avec l'ancienne variable unique
+        key = st.secrets.get("GROQ_API_KEY", "")
+    if key:
+        groq_keys.append(key)
 
 # --- SIDEBAR ---
 with st.sidebar:
@@ -28,10 +35,10 @@ with st.sidebar:
     else:
         st.warning("Gemini non configuré")
 
-    if client_groq:
-        st.success("Moteur de Secours (Fallback) : Groq / Llama 3.1 8B")
+    if groq_keys:
+        st.success(f"Moteur de Secours : Groq ({len(groq_keys)} clé(s) en rotation)")
     else:
-        st.warning("Groq non configuré")
+        st.warning("⚠️ Aucune clé Groq configurée")
 
     st.markdown("---")
     st.markdown("### Grande Bibliothèque")
@@ -39,8 +46,8 @@ with st.sidebar:
     st.info(f"Mémoire contextuelle : {nb_messages} échanges archivés")
 
 # --- MAIN INTERFACE ---
-st.title("🧠 AEGIS-CORE // INTERFACE OPÉRATIONNELLE")
-st.markdown("Système d'assistance globale avec bascule automatique de secours.")
+st.title("🛡️ AEGIS-CORE // INTERFACE OPÉRATIONNELLE")
+st.markdown("Système d'assistance globale avec rotation de clés et secours automatique.")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -57,7 +64,7 @@ SYSTEM_PROMPT = (
     "Tu t'adresses toujours à l'utilisateur en l'appelant 'Commandant'."
 )
 
-# --- CHAT INPUT & AUTOMATIC FALLBACK ---
+# --- CHAT INPUT & AUTOMATIC ROTATION FALLBACK ---
 if prompt := st.chat_input("Entrez votre directive ou idée de projet, Commandant..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
@@ -90,30 +97,33 @@ if prompt := st.chat_input("Entrez votre directive ou idée de projet, Commandan
                 succes = True
 
             except Exception as e:
-                st.caption("⚠️ *Alerte Meta-Router : Bascule automatique sur le moteur de secours Groq...*")
+                st.caption("⚠️ *Alerte Meta-Router : Bascule automatique sur les canaux de secours Groq...*")
 
-        # --- TENTATIVE 2 : GROQ (FALLBACK) ---
-        if client_groq and not succes:
-            try:
-                messages_payload = [{"role": "system", "content": SYSTEM_PROMPT}]
-                for m in st.session_state.messages:
-                    messages_payload.append({"role": m["role"], "content": m["content"]})
+        # --- TENTATIVE 2 : ROTATION DES CLÉS GROQ ---
+        if groq_keys and not succes:
+            messages_payload = [{"role": "system", "content": SYSTEM_PROMPT}]
+            for m in st.session_state.messages:
+                messages_payload.append({"role": m["role"], "content": m["content"]})
 
-                stream = client_groq.chat.completions.create(
-                    model="llama-3.1-8b-instant",
-                    messages=messages_payload,
-                    stream=True,
-                )
+            # On essaie chaque clé Groq l'une après l'autre en cas d'échec
+            for idx, g_key in enumerate(groq_keys):
+                try:
+                    temp_client_groq = Groq(api_key=g_key)
+                    stream = temp_client_groq.chat.completions.create(
+                        model="llama-3.1-8b-instant",  # Modèle actif standard
+                        messages=messages_payload,
+                        stream=True,
+                    )
 
-                reponse_finale = st.write_stream(chunk.choices[0].delta.content or "" for chunk in stream)
-                succes = True
-
-            except Exception as e:
-                reponse_finale = f"❌ Erreur critique : Tous les moteurs sont indisponibles. ({str(e)})"
-                st.markdown(reponse_finale)
+                    reponse_finale = st.write_stream(chunk.choices[0].delta.content or "" for chunk in stream)
+                    succes = True
+                    break  # Si ça marche, on sort de la boucle de rotation
+                except Exception as e:
+                    # Si la clé échoue, on continue vers la clé suivante de la liste
+                    continue
 
         if not succes and not reponse_finale:
-            reponse_finale = "⚠️ Aucune clé API valide n'a été configurée dans Streamlit Cloud."
+            reponse_finale = "❌ Erreur critique : Tous les moteurs et clés de secours sont saturés ou invalides."
             st.markdown(reponse_finale)
 
         st.session_state.messages.append({"role": "assistant", "content": reponse_finale})
