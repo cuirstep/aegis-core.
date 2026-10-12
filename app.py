@@ -169,13 +169,13 @@ if prompt:
                 except Exception as e:
                     diagnostic_log.append(f"Gemini SDK {model_name}: {str(e)}")
 
-        # --- TENTATIVE 2 : ROTATION GROQ (Modèles stables actuels) ---
+        # --- TENTATIVE 2 : ROTATION GROQ (Modèles actuels) ---
         if groq_keys and not succes:
             st.caption("⚠️ *Alerte Meta-Router : Bascule automatique sur les canaux de secours Groq...*")
             messages_payload = [{"role": "system", "content": SYSTEM_PROMPT}] + [{"role": m["role"], "content": m["content"]} for m in st.session_state.messages]
             
             for idx, g_key in enumerate(groq_keys):
-                for groq_model in ["llama-3.3-70b-versatile", "mixtral-8x7b-32768"]:
+                for groq_model in ["openai/gpt-oss-120b", "openai/gpt-oss-20b"]:
                     try:
                         client = Groq(api_key=g_key)
                         stream = client.chat.completions.create(
