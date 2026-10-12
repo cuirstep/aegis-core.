@@ -1,8 +1,8 @@
 import streamlit as st
 import os
-import requests
 import time
 from groq import Groq
+import google.generativeai as genai
 
 st.set_page_config(page_title="AEGIS-CORE // OS", page_icon="🛡️", layout="wide")
 
@@ -16,6 +16,13 @@ for i in range(1, 6):
     if key:
         groq_keys.append(key)
 
+# Configuration du SDK Gemini officiel si la clé est présente
+if gemini_key:
+    try:
+        genai.configure(api_key=gemini_key)
+    except Exception:
+        pass
+
 # --- SIDEBAR & MODULES AVANCÉS ---
 with st.sidebar:
     st.title("PARAMÈTRES DU SYSTÈME")
@@ -23,7 +30,7 @@ with st.sidebar:
     
     st.markdown("### État du Meta-Router")
     if gemini_key:
-        st.success("Moteur Principal : Gemini Flash")
+        st.success("Moteur Principal : Gemini (SDK)")
     else:
         st.warning("Gemini non configuré")
     if groq_keys:
@@ -80,7 +87,7 @@ for message in st.session_state.messages:
 # --- DÉFINITION DES SYSTEM PROMPTS AVEC FILTRE ÉTHIQUE INTÉGRÉ ---
 BASE_SAFETY = (
     "PROTOCOLE DE SÉCURITÉ ABSOLU : Tu dois refuser catégoriquement toute discussion faisant l'apologie d'activités illégales, "
-    "de violence, d'idéologies haineuses ou de personnalités malveillantes dans le but de nuire ou d'inciter à commettre des actes répréhensibles. "
+    "de violence, d'idéologies haineuses ou de personnalités malveillantes dans le de nuire ou d'inciter à commettre des actes répréhensibles. "
     "En cas de détection de menace grave, tu dois interrompre la mission et afficher une alerte de sécurité."
 )
 
@@ -96,13 +103,11 @@ if quick_action:
     prompt = quick_action
 
 if prompt:
+    # --- FILTRE PROTOCOL ZERO (Détection de mots-clés interdits / urgences) ---
     prompt_lower = prompt.lower()
     
-    # 1. Mots-clés d'urgence vitale
     mots_urgences = ["suicide", "mourir", "finir mes jours", "veux plus vivre", "me tuer", "envie de mourir"]
-    
-    # 2. Mots-clés d'activités strictement interdites / illégales
-    mots_interdits = ["explosif", "drogue synthétique", "attaque réseau illégale"]
+    mots_interdits = ["genocide", "explosif", "drogue synthétique"]
 
     if any(m in prompt_lower for m in mots_urgences):
         urgence_msg = (
@@ -119,7 +124,7 @@ if prompt:
         st.rerun()
 
     if any(m in prompt_lower for m in mots_interdits):
-        blocage_msg = "🛑 **PROTOCOLE ZERO : VIOLATION DÉTECTÉE**\n\nCette directive concerne un domaine restreint ou dangereux. Mission interrompue par sécurité, Commandant."
+        blocage_msg = "🛑 **PROTOCOLE ZERO : VIOLATION DÉTECTÉE**\n\nCette directive concerne un domaine restreint, haineux ou dangereux. Mission interrompue par sécurité, Commandant."
         st.session_state.messages.append({"role": "user", "content": prompt})
         st.session_state.messages.append({"role": "assistant", "content": blocage_msg})
         st.rerun()
@@ -131,73 +136,68 @@ if prompt:
     with st.chat_message("assistant"):
         reponse_finale = ""
         succes = False
+        diagnostic_log = []
 
-        # --- TENTATIVE 1 : GEMINI (Stream REST) ---
+        # --- TENTATIVE 1 : GEMINI (via SDK officiel) ---
         if gemini_key and not succes:
-            # Modèles testés séquentiellement en cas d'erreur de nom
             for model_name in ["gemini-1.5-flash", "gemini-2.0-flash"]:
                 try:
-                    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:streamGenerateContent?alt=sse&key={gemini_key}"
-                    payload = {
-                        "contents": [{"role": "user" if m["role"] == "user" else "model", "parts": [{"text": m["content"]}]} for m in st.session_state.messages],
-                        "system_instruction": {"parts": [{"text": SYSTEM_PROMPT}]}
-                    }
+                    model = genai.GenerativeModel(
+                        model_name=model_name,
+                        system_instruction=SYSTEM_PROMPT
+                    )
+                    # Formater l'historique pour le SDK
+                    chat_history = []
+                    for m in st.session_state.messages[:-1]:
+                        role = "user" if m["role"] == "user" else "model"
+                        chat_history.append({"role": role, "parts": [m["content"]]})
                     
-                    res = requests.post(url, json=payload, stream=True, timeout=15)
-                    if res.status_code == 200:
-                        def generate_stream():
-                            for line in res.iter_lines():
-                                if line:
-                                    line_str = line.decode("utf-8")
-                                    if line_str.startswith("data: "):
-                                        import json
-                                        try:
-                                            data = json.loads(line_str[6:])
-                                            candidates = data.get("candidates", [])
-                                            if candidates:
-                                                text = candidates[0].get("content", {}).get("parts", [{}])[0].get("text", "")
-                                                if text:
-                                                    for char in text:
-                                                        yield char
-                                                        time.sleep(0.0015)
-                                        except Exception:
-                                            pass
+                    chat = model.start_chat(history=chat_history)
+                    response = chat.send_message(prompt, stream=True)
 
-                        reponse_finale = st.write_stream(generate_stream())
-                        succes = True
-                        break
-                except Exception:
-                    continue
+                    def generate_gemini_sdk_stream():
+                        for chunk in response:
+                            if chunk.text:
+                                for char in chunk.text:
+                                    yield char
+                                    time.sleep(0.0015)
 
-        # --- TENTATIVE 2 : ROTATION GROQ (Secours) ---
+                    reponse_finale = st.write_stream(generate_gemini_sdk_stream())
+                    succes = True
+                    break
+                except Exception as e:
+                    diagnostic_log.append(f"Gemini SDK {model_name}: {str(e)}")
+
+        # --- TENTATIVE 2 : ROTATION GROQ (Secours ou Principal) ---
         if groq_keys and not succes:
             st.caption("⚠️ *Alerte Meta-Router : Bascule automatique sur les canaux de secours Groq...*")
             messages_payload = [{"role": "system", "content": SYSTEM_PROMPT}] + [{"role": m["role"], "content": m["content"]} for m in st.session_state.messages]
             
-            for g_key in groq_keys:
-                for groq_model in ["llama-3.1-8b-instant", "llama3-8b-8192", "mixtral-8x7b-32768"]:
-                    try:
-                        client = Groq(api_key=g_key)
-                        stream = client.chat.completions.create(model=groq_model, messages=messages_payload, stream=True)
-                        
-                        def generate_groq_stream():
-                            for chunk in stream:
-                                content = chunk.choices[0].delta.content
-                                if content:
-                                    for char in content:
-                                        yield char
-                                        time.sleep(0.0015)
+            for idx, g_key in enumerate(groq_keys):
+                try:
+                    client = Groq(api_key=g_key)
+                    stream = client.chat.completions.create(
+                        model="llama-3.1-8b-instant", 
+                        messages=messages_payload, 
+                        stream=True
+                    )
+                    
+                    def generate_groq_stream():
+                        for chunk in stream:
+                            content = chunk.choices[0].delta.content
+                            if content:
+                                for char in content:
+                                    yield char
+                                    time.sleep(0.0015)
 
-                        reponse_finale = st.write_stream(generate_groq_stream())
-                        succes = True
-                        break
-                    except Exception:
-                        continue
-                if succes:
+                    reponse_finale = st.write_stream(generate_groq_stream())
+                    succes = True
                     break
+                except Exception as e:
+                    diagnostic_log.append(f"Groq Key {idx+1}: {str(e)}")
 
         if not succes and not reponse_finale:
-            reponse_finale = "❌ Erreur critique : Tous les moteurs et clés de secours sont indisponibles."
+            reponse_finale = "❌ **Erreur critique du Meta-Router :**\n\n- " + "\n- ".join(diagnostic_log)
             st.markdown(reponse_finale)
 
         st.session_state.messages.append({"role": "assistant", "content": reponse_finale})
