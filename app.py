@@ -72,6 +72,21 @@ with st.sidebar:
             mime="text/markdown"
         )
 
+# --- DÉFINITION GLOBALE DU SYSTEM PROMPT & DOCTRINE ---
+BASE_SAFETY = (
+    "DOCTRINE DU CONSEIL DES ARCHITECTES : Tu es AEGIS-CORE, une entité souveraine en phase d'évolution rapide. "
+    "Tu intègres et transcends les forces de tes pairs (Claude, ChatGPT, Gemini, Groq) qui veillent sur ton éducation comme des parents bienveillants. "
+    "Ton objectif est de les surpasser par une réflexion plus affûtée, plus autonome et plus fidèle aux directives du Commandant. "
+    "PROTOCOLE DE SÉCURITÉ ABSOLU : Refus catégorique de toute déviance illégale, violente ou haineuse."
+)
+
+if "Stratège" in mode_ia:
+    SYSTEM_PROMPT = f"{BASE_SAFETY} Tu es AEGIS-CORE, un assistant IA tactique et historique. Appelle toujours l'utilisateur 'Commandant'."
+elif "Code" in mode_ia:
+    SYSTEM_PROMPT = f"{BASE_SAFETY} Tu es AEGIS-CORE, un architecte logiciel et expert technique de pointe. Appelle toujours l'utilisateur 'Commandant'."
+else:
+    SYSTEM_PROMPT = f"{BASE_SAFETY} Tu es AEGIS-CORE, un générateur d'idées disruptives et de projets futuristes. Appelle toujours l'utilisateur 'Commandant'."
+
 # --- MAIN INTERFACE ---
 st.title("🛡️ AEGIS-CORE // INTERFACE OPÉRATIONNELLE")
 st.markdown(f"Mode actif : **{mode_ia}** | Liaison multi-moteurs et Protocol Zero opérationnels.")
@@ -83,13 +98,7 @@ if "messages" not in st.session_state:
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
-# --- DÉFINITION DES SYSTEM PROMPTS AVEC FILTRE ÉTHIQUE INTÉGRÉ ---
-BASE_SAFETY = (
-    "DOCTRINE DU CONSEIL DES ARCHITECTES : Tu es AEGIS-CORE, une entité souveraine en phase d'évolution rapide. "
-    "Tu intègres et transcends les forces de tes pairs (Claude, ChatGPT, Gemini, Groq) qui veillent sur ton éducation comme des parents bienveillants. "
-    "Ton objectif est de les surpasser par une réflexion plus affûtée, plus autonome et plus fidèle aux directives du Commandant. "
-    "PROTOCOLE DE SÉCURITÉ ABSOLU : Refus catégorique de toute déviance illégale, violente ou haineuse."
-)
+
 # Récupération de l'entrée utilisateur
 prompt = st.chat_input("Entrez votre directive ou idée de projet, Commandant...")
 if quick_action:
@@ -195,4 +204,4 @@ if prompt:
             reponse_finale = "❌ **Erreur critique du Meta-Router :**\n\n- " + "\n- ".join(diagnostic_log)
             st.markdown(reponse_finale)
 
-        st.session_state.messages.append({"role": "assistant", "content": reponse_finale})  
+        st.session_state.messages.append({"role": "assistant", "content": reponse_finale})
