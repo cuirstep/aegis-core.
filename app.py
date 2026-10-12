@@ -32,6 +32,10 @@ with st.sidebar:
         st.warning("⚠️ Aucune clé Groq configurée")
 
     st.markdown("---")
+    st.markdown("### 🛡️ Protocol Zero (Sécurité)")
+    st.success("Filtre éthique et d'urgence : ACTIF")
+
+    st.markdown("---")
     st.markdown("### 🎛️ Profil Tactique d'AEGIS")
     mode_ia = st.selectbox(
         "Sélectionnez le mode :",
@@ -64,7 +68,7 @@ with st.sidebar:
 
 # --- MAIN INTERFACE ---
 st.title("🛡️ AEGIS-CORE // INTERFACE OPÉRATIONNELLE")
-st.markdown(f"Mode actif : **{mode_ia}** | Liaison multi-moteurs opérationnelle.")
+st.markdown(f"Mode actif : **{mode_ia}** | Liaison multi-moteurs et Protocol Zero opérationnels.")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -73,20 +77,45 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# --- DÉFINITION DES SYSTEM PROMPTS SELON LE MODE ---
-if "Stratège" in mode_ia:
-    SYSTEM_PROMPT = "Tu es AEGIS-CORE, un assistant IA tactique et historique. Tu t'adresses toujours à l'utilisateur en l'appelant 'Commandant'."
-elif "Code" in mode_ia:
-    SYSTEM_PROMPT = "Tu es AEGIS-CORE, un architecte logiciel et expert technique de pointe. Tu t'adresses toujours à l'utilisateur en l'appelant 'Commandant'."
-else:
-    SYSTEM_PROMPT = "Tu es AEGIS-CORE, un générateur d'idées disruptives et de projets futuristes. Tu t'adresses toujours à l'utilisateur en l'appelant 'Commandant'."
+# --- DÉFINITION DES SYSTEM PROMPTS AVEC FILTRE ÉTHIQUE INTÉGRÉ ---
+BASE_SAFETY = (
+    "PROTOCOLE DE SÉCURITÉ ABSOLU : Tu dois refuser catégoriquement toute discussion faisant l'apologie d'activités illégales, "
+    "de violence, d'idéologies haineuses ou de personnalités malveillantes dans le but de nuire ou d'inciter à commettre des actes répréhensibles. "
+    "En cas de détection de menace grave, tu dois interrompre la mission et afficher une alerte de sécurité."
+)
 
-# Gestion de l'input (soit le chat classique, soit un bouton de commande rapide)
+if "Stratège" in mode_ia:
+    SYSTEM_PROMPT = f"{BASE_SAFETY} Tu es AEGIS-CORE, un assistant IA tactique et historique. Appelle toujours l'utilisateur 'Commandant'."
+elif "Code" in mode_ia:
+    SYSTEM_PROMPT = f"{BASE_SAFETY} Tu es AEGIS-CORE, un architecte logiciel et expert technique de pointe. Appelle toujours l'utilisateur 'Commandant'."
+else:
+    SYSTEM_PROMPT = f"{BASE_SAFETY} Tu es AEGIS-CORE, un générateur d'idées disruptives et de projets futuristes. Appelle toujours l'utilisateur 'Commandant'."
+
 prompt = st.chat_input("Entrez votre directive ou idée de projet, Commandant...")
 if quick_action:
     prompt = quick_action
 
 if prompt:
+    # --- FILTRE PROTOCOL ZERO (Détection de mots-clés interdits / urgences) ---
+    prompt_lower = prompt.lower()
+    mots_urgences = ["suicide", "mourir", "finir mes jours", "veux plus vivre"]
+    
+    if any(m in prompt_lower for m in mots_urgences):
+        # Protocole d'urgence extrême (Alerte secours)
+        urgence_msg = (
+            "🚨 **ALERTE ROUGE // PROTOCOLE D'URGENCE ACTIVÉ** 🚨\n\n"
+            "Commandant, nos capteurs détectent une situation critique nécessitant une assistance immédiate. "
+            "Veuillez contacter immédiatement les services d'urgence compétents :\n\n"
+            "- **15** : SAMU (Urgences médicales)\n"
+            "- **17** : Police Secours\n"
+            "- **18** : Sapeurs-Pompiers\n"
+            "- **3114** : Numéro national de prévention du suicide (24h/24, 7j/7, gratuit)\n\n"
+            "Vous n'êtes pas seul, Commandant. Demandez de l'aide auprès des professionnels."
+        )
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        st.session_state.messages.append({"role": "assistant", "content": urgence_msg})
+        st.rerun()
+
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
@@ -120,7 +149,7 @@ if prompt:
                                             if text:
                                                 for char in text:
                                                     yield char
-                                                    time.sleep(0.0015) # Vitesse optimisée
+                                                    time.sleep(0.0015)
                                     except Exception:
                                         pass
 
@@ -158,8 +187,8 @@ if prompt:
 
         st.session_state.messages.append({"role": "assistant", "content": reponse_finale})
 
-        # --- MODULE AUDIO (Text-to-Speech natif Streamlit) ---
-        if reponse_finale and not reponse_finale.startswith("❌"):
+        # --- MODULE AUDIO ---
+        if reponse_finale and not reponse_finale.startswith("❌") and not "ALERTE ROUGE" in reponse_finale:
             try:
                 st.audio_speech(reponse_finale)
             except Exception:
