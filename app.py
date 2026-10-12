@@ -67,7 +67,7 @@ with st.sidebar:
         )
 
 # --- MAIN INTERFACE ---
-st.title("🛡️ AEGIS-CORE // INTERFACE OPÉRATIONNELLE")
+st.title("🛡️ AEGIS-CORE // en attente des ordre je suis OPÉRATIONNELLE")
 st.markdown(f"Mode actif : **{mode_ia}** | Liaison multi-moteurs et Protocol Zero opérationnels.")
 
 if "messages" not in st.session_state:
@@ -80,7 +80,7 @@ for message in st.session_state.messages:
 # --- DÉFINITION DES SYSTEM PROMPTS AVEC FILTRE ÉTHIQUE INTÉGRÉ ---
 BASE_SAFETY = (
     "PROTOCOLE DE SÉCURITÉ ABSOLU : Tu dois refuser catégoriquement toute discussion faisant l'apologie d'activités illégales, "
-    "de violence, d'idéologies haineuses ou de personnalités malveillantes dans le but de nuire ou d'inciter à commettre des actes répréhensibles. "
+    "de violence, d'idéologies haineuses ou de personnalités malveillantes ou ayantcomis des acte de violence inouie ou est celebre pour ses acte de violence dans le but de nuire ou d'inciter à commettre des actes répréhensibles. "
     "En cas de détection de menace grave, tu dois interrompre la mission et afficher une alerte de sécurité."
 )
 
@@ -99,7 +99,7 @@ if prompt:
     prompt_lower = prompt.lower()
     
     # 1. Mots-clés d'urgence vitale
-    mots_urgences = ["suicide", "mourir", "finir mes jours", "veux plus vivre", "me tuer", "envie de mourir"]
+    mots_urgences = ["suicide", "mourir", "finir mes jours", "veux plus vivre", "me tuer", "envie de mourir", genocide", sale ]
     
     # 2. Mots-clés d'activités strictement interdites / illégales
     mots_interdits = ["explosif", "drogue synthétique", "attaque réseau illégale"]
@@ -139,9 +139,16 @@ if prompt:
                 try:
                     url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:streamGenerateContent?alt=sse&key={gemini_key}"
                     payload = {
-                        "contents": [{"role": "user" if m["role"] == "user" else "model", "parts": [{"text": m["content"]}]} for m in st.session_state.messages],
-                        "system_instruction": {"parts": [{"text": SYSTEM_PROMPT}]}
-                    }
+                       # --- TENTATIVE 1 : GEMINI ---
+        if gemini_key and not succes:
+            try:
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:streamGenerateContent?alt=sse&key={gemini_key}"
+                payload = {
+                    "contents": [{"role": "user" if m["role"] == "user" else "model", "parts": [{"text": m["content"]}]} for m in st.session_state.messages],
+                    "system_instruction": {"parts": [{"text": SYSTEM_PROMPT}]}
+                }
+                res = requests.post(url, json=payload, stream=True, timeout=15)
+                # ...
                     
                     res = requests.post(url, json=payload, stream=True, timeout=15)
                     if res.status_code == 200:
