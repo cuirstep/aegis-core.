@@ -169,14 +169,13 @@ if prompt:
                 except Exception as e:
                     diagnostic_log.append(f"Gemini SDK {model_name}: {str(e)}")
 
-        # --- TENTATIVE 2 : ROTATION GROQ (Modèle minimaliste et universel de secours) ---
+        # --- TENTATIVE 2 : ROTATION GROQ (Modèles stables actuels) ---
         if groq_keys and not succes:
             st.caption("⚠️ *Alerte Meta-Router : Bascule automatique sur les canaux de secours Groq...*")
             messages_payload = [{"role": "system", "content": SYSTEM_PROMPT}] + [{"role": m["role"], "content": m["content"]} for m in st.session_state.messages]
             
             for idx, g_key in enumerate(groq_keys):
-                # Utilisation d'un identifiant universel fréquemment supporté pour éviter le blocage
-                for groq_model in ["llama-3.1-8b-instant", "llama3-8b-8192"]:
+                for groq_model in ["llama-3.3-70b-versatile", "mixtral-8x7b-32768"]:
                     try:
                         client = Groq(api_key=g_key)
                         stream = client.chat.completions.create(
