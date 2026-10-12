@@ -199,11 +199,37 @@ if prompt:
                         diagnostic_log.append(f"Groq Key {idx+1} ({groq_model}): {str(e)}")
                 if succes:
                     break
-# --- TENTATIVE 2 : ROTATION GROQ (Modèles stables) ---
+
+     # --- TENTATIVE 2 : ROTATION GROQ (Modèles actuels et actifs) ---
         if groq_keys and not succes:
             st.caption("⚠️ *Alerte Meta-Router : Bascule automatique sur les canaux de secours Groq...*")
             messages_payload = [{"role": "system", "content": SYSTEM_PROMPT}] + [{"role": m["role"], "content": m["content"]} for m in st.session_state.messages]
             
+            for idx, g_key in enumerate(groq_keys):
+                for groq_model in ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"]:
+                    try:
+                        client = Groq(api_key=g_key)
+                        stream = client.chat.completions.create(
+                            model=groq_model, 
+                            messages=messages_payload, 
+                            stream=True
+                        )
+                        
+                        def generate_groq_stream():
+                            for chunk in stream:
+                                content = chunk.choices[0].delta.content
+                                if content:
+                                    for char in content:
+                                        yield char
+                                        time.sleep(0.0015)
+
+                        reponse_finale = st.write_stream(generate_groq_stream())
+                        succes = True
+                        break
+                    except Exception as e:
+                        diagnostic_log.append(f"Groq Key {idx+1} ({groq_model}): {str(e)}")
+                if succes:
+                    break
             for idx, g_key in enumerate(groq_keys):
                 for groq_model in ["llama3-8b-8192", "llama3-70b-8192", "mixtral-8x7b-32768"]:
                     try:
