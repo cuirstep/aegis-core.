@@ -170,10 +170,33 @@ if prompt:
                     continue
 
         # --- TENTATIVE 2 : ROTATION GROQ (Secours) ---
+    # --- TENTATIVE 2 : ROTATION GROQ (Secours) ---
         if groq_keys and not succes:
             st.caption("⚠️ *Alerte Meta-Router : Bascule automatique sur les canaux de secours Groq...*")
             messages_payload = [{"role": "system", "content": SYSTEM_PROMPT}] + [{"role": m["role"], "content": m["content"]} for m in st.session_state.messages]
             
+            for g_key in groq_keys:
+                try:
+                    client = Groq(api_key=g_key)
+                    stream = client.chat.completions.create(
+                        model="llama-3.1-8b-instant", 
+                        messages=messages_payload, 
+                        stream=True
+                    )
+                    
+                    def generate_groq_stream():
+                        for chunk in stream:
+                            content = chunk.choices[0].delta.content
+                            if content:
+                                for char in content:
+                                    yield char
+                                    time.sleep(0.0015)
+
+                    reponse_finale = st.write_stream(generate_groq_stream())
+                    succes = True
+                    break
+                except Exception:
+                    continue
             for g_key in groq_keys:
                 for groq_model in ["llama-3.1-8b-instant", "llama3-8b-8192", "mixtral-8x7b-32768"]:
                     try:
