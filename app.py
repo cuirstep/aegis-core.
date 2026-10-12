@@ -6,6 +6,33 @@ import google.generativeai as genai
 
 st.set_page_config(page_title="AEGIS-CORE // OS", page_icon="🛡️", layout="wide")
 
+# --- INJECTION CSS : MASQUAGE STREAMLIT & DESIGN PROPRE ---
+st.markdown("""
+    <style>
+    /* Masquer le menu hamburger et le footer Streamlit */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    
+    /* Personnalisation du style sombre AEGIS */
+    .stApp {
+        background-color: #0e1117;
+        color: #ffffff;
+    }
+    
+    /* Style du titre latéral AEGIS */
+    .aegis-brand {
+        font-size: 28px;
+        font-weight: 800;
+        color: #ff4b4b; /* Couleur Rouge AEGIS */
+        letter-spacing: 2px;
+        margin-bottom: 20px;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+# Affichage du titre personnalisé dans la barre latérale
+st.sidebar.markdown('<div class="aegis-brand">🛡️ AEGIS</div>', unsafe_allow_html=True)
 # --- API KEYS & CONFIG ---
 gemini_key = st.secrets.get("GEMINI_API_KEY", "")
 groq_keys = []
