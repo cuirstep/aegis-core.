@@ -140,7 +140,7 @@ if prompt:
         succes = False
         diagnostic_log = []
 
-        # --- TENTATIVE 1 : GEMINI ---
+        # --- TENTATIVE 1 : GEMINI (Ignoré si quota atteint, passe directement au secours) ---
         if gemini_key and not succes:
             for model_name in ["gemini-3.8-flash", "gemini-1.5-flash"]:
                 try:
@@ -169,13 +169,13 @@ if prompt:
                 except Exception as e:
                     diagnostic_log.append(f"Gemini SDK {model_name}: {str(e)}")
 
-        # --- TENTATIVE 2 : ROTATION GROQ ---
+        # --- TENTATIVE 2 : ROTATION GROQ (Modèles stables) ---
         if groq_keys and not succes:
             st.caption("⚠️ *Alerte Meta-Router : Bascule automatique sur les canaux de secours Groq...*")
             messages_payload = [{"role": "system", "content": SYSTEM_PROMPT}] + [{"role": m["role"], "content": m["content"]} for m in st.session_state.messages]
             
             for idx, g_key in enumerate(groq_keys):
-                for groq_model in ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"]:
+                for groq_model in ["llama3-8b-8192", "llama3-70b-8192", "mixtral-8x7b-32768"]:
                     try:
                         client = Groq(api_key=g_key)
                         stream = client.chat.completions.create(
@@ -204,4 +204,4 @@ if prompt:
             reponse_finale = "❌ **Erreur critique du Meta-Router :**\n\n- " + "\n- ".join(diagnostic_log)
             st.markdown(reponse_finale)
 
-        st.session_state.messages.append({"role": "assistant", "content": reponse_finale})
+        st.session_state.messages.append({"role": "assistant", "content": donne_reponse := reponse_finale})
