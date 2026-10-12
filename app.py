@@ -99,7 +99,7 @@ if prompt:
     prompt_lower = prompt.lower()
     
     # 1. Mots-clés d'urgence vitale
-    mots_urgences = ["suicide", "mourir", "finir mes jours", "veux plus vivre", "me tuer", "envie de mourir", genocide", sale ]
+    mots_urgences = ["suicide", "mourir", "finir mes jours", "veux plus vivre", "me tuer", "envie de mourir", "genocide", "sale noir", "sale arabe", "sale juif", "negro", ]
     
     # 2. Mots-clés d'activités strictement interdites / illégales
     mots_interdits = ["explosif", "drogue synthétique", "attaque réseau illégale"]
