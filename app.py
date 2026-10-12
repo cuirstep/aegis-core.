@@ -6,6 +6,7 @@ from groq import Groq
 
 st.set_page_config(page_title="AEGIS-CORE // OS", page_icon="🛡️", layout="wide")
 
+# --- API KEYS & CONFIG ---
 gemini_key = st.secrets.get("GEMINI_API_KEY", "")
 groq_keys = []
 for i in range(1, 6):
@@ -15,9 +16,11 @@ for i in range(1, 6):
     if key:
         groq_keys.append(key)
 
+# --- SIDEBAR & MODULES AVANCÉS ---
 with st.sidebar:
     st.title("PARAMÈTRES DU SYSTÈME")
     st.markdown("---")
+    
     st.markdown("### État du Meta-Router")
     if gemini_key:
         st.success("Moteur Principal : Gemini 3.8 Flash")
@@ -28,8 +31,40 @@ with st.sidebar:
     else:
         st.warning("⚠️ Aucune clé Groq configurée")
 
+    st.markdown("---")
+    st.markdown("### 🎛️ Profil Tactique d'AEGIS")
+    mode_ia = st.selectbox(
+        "Sélectionnez le mode :",
+        ["Stratège Militaire & Historique", "Expert Code & Tech", "Générateur d'Idées / Projets"]
+    )
+
+    st.markdown("---")
+    st.markdown("### ⚡ Commandes Rapides")
+    quick_action = None
+    if st.button("🚀 Idée de projet innovant"):
+        quick_action = "Donne-moi une idée de projet innovant à développer en Python pour améliorer la productivité."
+    if st.button("💻 Optimiser un script"):
+        quick_action = "Comment structurer proprement un projet Python sous Streamlit ?"
+    if st.button("📊 Analyse stratégique"):
+        quick_action = "Fais-moi un point stratégique sur l'intelligence artificielle en 2026."
+
+    st.markdown("---")
+    st.markdown("### 📁 Journal de Bord")
+    nb_messages = len(st.session_state.get("messages", []))
+    st.info(f"Mémoire : {nb_messages} échanges")
+
+    if nb_messages > 0:
+        chat_export = "\n\n".join([f"**{m['role'].upper()}**: {m['content']}" for m in st.session_state.messages])
+        st.download_button(
+            label="📥 Télécharger le rapport (.md)",
+            data=chat_export,
+            file_name="aegis_mission_report.md",
+            mime="text/markdown"
+        )
+
+# --- MAIN INTERFACE ---
 st.title("🛡️ AEGIS-CORE // INTERFACE OPÉRATIONNELLE")
-st.markdown("Système d'assistance globale avec rotation de clés et secours automatique.")
+st.markdown(f"Mode actif : **{mode_ia}** | Liaison multi-moteurs opérationnelle.")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -38,9 +73,20 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-SYSTEM_PROMPT = "Tu es AEGIS-CORE, un assistant IA tactique, ultra-polyvalent et réactif. Appelle toujours l'utilisateur 'Commandant'."
+# --- DÉFINITION DES SYSTEM PROMPTS SELON LE MODE ---
+if "Stratège" in mode_ia:
+    SYSTEM_PROMPT = "Tu es AEGIS-CORE, un assistant IA tactique et historique. Tu t'adresses toujours à l'utilisateur en l'appelant 'Commandant'."
+elif "Code" in mode_ia:
+    SYSTEM_PROMPT = "Tu es AEGIS-CORE, un architecte logiciel et expert technique de pointe. Tu t'adresses toujours à l'utilisateur en l'appelant 'Commandant'."
+else:
+    SYSTEM_PROMPT = "Tu es AEGIS-CORE, un générateur d'idées disruptives et de projets futuristes. Tu t'adresses toujours à l'utilisateur en l'appelant 'Commandant'."
 
-if prompt := st.chat_input("Entrez votre directive ou idée de projet, Commandant..."):
+# Gestion de l'input (soit le chat classique, soit un bouton de commande rapide)
+prompt = st.chat_input("Entrez votre directive ou idée de projet, Commandant...")
+if quick_action:
+    prompt = quick_action
+
+if prompt:
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
@@ -49,7 +95,7 @@ if prompt := st.chat_input("Entrez votre directive ou idée de projet, Commandan
         reponse_finale = ""
         succes = False
 
-        # --- TENTATIVE 1 : GEMINI (avec effet stream et vitesse augmentée) ---
+        # --- TENTATIVE 1 : GEMINI (Stream REST) ---
         if gemini_key and not succes:
             try:
                 url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:streamGenerateContent?alt=sse&key={gemini_key}"
@@ -74,8 +120,7 @@ if prompt := st.chat_input("Entrez votre directive ou idée de projet, Commandan
                                             if text:
                                                 for char in text:
                                                     yield char
-                                                    # Vitesse augmentée (délai très court par caractère)
-                                                    time.sleep(0.002)
+                                                    time.sleep(0.0015) # Vitesse optimisée
                                     except Exception:
                                         pass
 
@@ -99,7 +144,7 @@ if prompt := st.chat_input("Entrez votre directive ou idée de projet, Commandan
                             if content:
                                 for char in content:
                                     yield char
-                                    time.sleep(0.002)
+                                    time.sleep(0.0015)
 
                     reponse_finale = st.write_stream(generate_groq_stream())
                     succes = True
@@ -112,3 +157,10 @@ if prompt := st.chat_input("Entrez votre directive ou idée de projet, Commandan
             st.markdown(reponse_finale)
 
         st.session_state.messages.append({"role": "assistant", "content": reponse_finale})
+
+        # --- MODULE AUDIO (Text-to-Speech natif Streamlit) ---
+        if reponse_finale and not reponse_finale.startswith("❌"):
+            try:
+                st.audio_speech(reponse_finale)
+            except Exception:
+                pass
