@@ -1,6 +1,6 @@
 import streamlit as st
 import os
-from google import genai
+import requests
 from groq import Groq
 
 # --- PAGE CONFIG ---
@@ -10,16 +10,13 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- API KEYS & CLIENTS INITIALIZATION ---
+# --- API KEYS & CONFIG ---
 gemini_key = st.secrets.get("GEMINI_API_KEY", "")
-client_gemini = genai.Client(api_key=gemini_key) if gemini_key else None
 
-# Récupération dynamique de toutes les clés Groq disponibles dans les secrets
 groq_keys = []
-for i in range(1, 6):  # Permet de gérer jusqu'à 5 clés différentes (GROQ_API_KEY_1, _2, etc.)
+for i in range(1, 6):
     key = st.secrets.get(f"GROQ_API_KEY_{i}", "")
     if not key and i == 1:
-        # Rétrocompatibilité avec l'ancienne variable unique
         key = st.secrets.get("GROQ_API_KEY", "")
     if key:
         groq_keys.append(key)
@@ -30,13 +27,13 @@ with st.sidebar:
     st.markdown("---")
     
     st.markdown("### État du Meta-Router")
-    if client_gemini:
+    if gemini_key:
         st.success("Moteur Principal : Gemini 2.5 Flash")
     else:
         st.warning("Gemini non configuré")
 
     if groq_keys:
-        st.success(f"Moteur de Secours : Groq ({len(groq_keys)} clé(s) en rotation)")
+        st.success(f"Moteur de Secours : Groq ({len(groq_keys)} clé(s))")
     else:
         st.warning("⚠️ Aucune clé Groq configurée")
 
@@ -64,7 +61,7 @@ SYSTEM_PROMPT = (
     "Tu t'adresses toujours à l'utilisateur en l'appelant 'Commandant'."
 )
 
-# --- CHAT INPUT & AUTOMATIC ROTATION FALLBACK ---
+# --- CHAT INPUT & FALLBACK LOGIC ---
 if prompt := st.chat_input("Entrez votre directive ou idée de projet, Commandant..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
@@ -74,27 +71,35 @@ if prompt := st.chat_input("Entrez votre directive ou idée de projet, Commandan
         reponse_finale = ""
         succes = False
 
-        # --- TENTATIVE 1 : GEMINI ---
-        if client_gemini and not succes:
+        # --- TENTATIVE 1 : GEMINI (via API REST directe) ---
+        if gemini_key and not succes:
             try:
-                contents = []
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={gemini_key}"
+                
+                # Construction de l'historique des messages pour l'API
+                formatted_contents = []
                 for m in st.session_state.messages:
-                    role_gemini = "user" if m["role"] == "user" else "model"
-                    contents.append({"role": role_gemini, "parts": [{"text": m["content"]}]})
+                    role = "user" if m["role"] == "user" else "model"
+                    formatted_contents.append({
+                        "role": role,
+                        "parts": [{"text": m["content"]}]
+                    })
 
-                response = client_gemini.models.generate_content_stream(
-                    model="gemini-2.5-flash",
-                    contents=contents,
-                    config={"system_instruction": SYSTEM_PROMPT}
-                )
+                payload = {
+                    "contents": formatted_contents,
+                    "system_instruction": {
+                        "parts": [{"text": SYSTEM_PROMPT}]
+                    }
+                }
 
-                def stream_gemini():
-                    for chunk in response:
-                        if chunk.text:
-                            yield chunk.text
-
-                reponse_finale = st.write_stream(stream_gemini())
-                succes = True
+                response = requests.post(url, json=payload, timeout=30)
+                if response.status_code == 200:
+                    data = response.json()
+                    reponse_finale = data["candidates"][0]["content"]["parts"][0]["text"]
+                    st.markdown(reponse_finale)
+                    succes = True
+                else:
+                    raise Exception(f"Erreur HTTP {response.status_code}")
 
             except Exception as e:
                 st.caption("⚠️ *Alerte Meta-Router : Bascule automatique sur les canaux de secours Groq...*")
@@ -105,25 +110,23 @@ if prompt := st.chat_input("Entrez votre directive ou idée de projet, Commandan
             for m in st.session_state.messages:
                 messages_payload.append({"role": m["role"], "content": m["content"]})
 
-            # On essaie chaque clé Groq l'une après l'autre en cas d'échec
-            for idx, g_key in enumerate(groq_keys):
+            for g_key in groq_keys:
                 try:
                     temp_client_groq = Groq(api_key=g_key)
                     stream = temp_client_groq.chat.completions.create(
-                        model="llama-3.1-8b-instant",  # Modèle actif standard
+                        model="llama-3.1-8b-instant",
                         messages=messages_payload,
                         stream=True,
                     )
 
                     reponse_finale = st.write_stream(chunk.choices[0].delta.content or "" for chunk in stream)
                     succes = True
-                    break  # Si ça marche, on sort de la boucle de rotation
-                except Exception as e:
-                    # Si la clé échoue, on continue vers la clé suivante de la liste
+                    break
+                except Exception:
                     continue
 
         if not succes and not reponse_finale:
-            reponse_finale = "❌ Erreur critique : Tous les moteurs et clés de secours sont saturés ou invalides."
+            reponse_finale = "❌ Erreur critique : Tous les moteurs et clés de secours sont indisponibles."
             st.markdown(reponse_finale)
 
         st.session_state.messages.append({"role": "assistant", "content": reponse_finale})
