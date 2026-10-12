@@ -204,4 +204,4 @@ if prompt:
             reponse_finale = "❌ **Erreur critique du Meta-Router :**\n\n- " + "\n- ".join(diagnostic_log)
             st.markdown(reponse_finale)
 
-        st.session_state.messages.append({"role": "assistant", "content": donne_reponse := reponse_finale})
+ st.session_state.messages.append({"role": "assistant", "content": reponse_finale})
