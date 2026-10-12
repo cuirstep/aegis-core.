@@ -1,4 +1,5 @@
-# --- FILTRE PROTOCOL ZERO (Détection de mots-clés interdits / urgences) ---
+if prompt:
+    # --- FILTRE PROTOCOL ZERO (Détection de mots-clés interdits / urgences) ---
     prompt_lower = prompt.lower()
     
     # 1. Mots-clés d'urgence vitale (Déclenche l'alerte SAMU / 3114)
@@ -39,3 +40,7 @@
         st.session_state.messages.append({"role": "user", "content": prompt})
         st.session_state.messages.append({"role": "assistant", "content": blocage_msg})
         st.rerun()
+
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
