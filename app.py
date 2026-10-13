@@ -4,32 +4,46 @@ import time
 from groq import Groq
 import google.generativeai as genai
 
-st.set_page_config(page_title="AEGIS-CORE // OS", page_icon="🛡️", layout="wide")
+# Configuration de la page avec le logo en favicon
+st.set_page_config(
+    page_title="AEGIS-CORE // OS", 
+    page_icon="logo.png" if os.path.exists("logo.png") else "🛡️", 
+    layout="wide"
+)
 
 # --- INJECTION CSS : MASQUAGE STREAMLIT & DESIGN PROPRE ---
 st.markdown("""
     <style>
-    /* Masquer le menu hamburger et le footer Streamlit */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
     
-    /* Personnalisation du style sombre AEGIS */
     .stApp {
         background-color: #0e1117;
         color: #ffffff;
     }
     
-    /* Style du titre latéral AEGIS */
     .aegis-brand {
-        font-size: 28px;
+        font-size: 26px;
         font-weight: 800;
-        color: #ff4b4b; /* Couleur Rouge AEGIS */
+        color: #ff4b4b;
         letter-spacing: 2px;
-        margin-bottom: 20px;
+        margin-top: 10px;
+        margin-bottom: 15px;
+        text-align: center;
     }
     </style>
 """, unsafe_allow_html=True)
+
+# --- SIDEBAR : EN-TÊTE AVEC LOGO OFFICIEL ---
+with st.sidebar:
+    if os.path.exists("logo.png"):
+        st.image("logo.png", use_container_width=True)
+    else:
+        st.markdown('<div class="aegis-brand">🛡️ AEGIS-CORE</div>', unsafe_allow_html=True)
+        
+    st.markdown("### PARAMÈTRES DU SYSTÈME")
+    st.markdown("---")
 
 # Affichage du titre personnalisé dans la barre latérale
 st.sidebar.markdown('<div class="aegis-brand">🛡️ AEGIS</div>', unsafe_allow_html=True)
