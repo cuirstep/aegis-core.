@@ -11,7 +11,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- INJECTION CSS ---
+# --- INJECTION CSS (Design épuré, style ChatGPT) ---
 st.markdown("""
     <style>
     #MainMenu {visibility: hidden;}
@@ -20,6 +20,11 @@ st.markdown("""
     .stApp {
         background-color: #0e1117;
         color: #ffffff;
+    }
+    
+    /* Masquer les avatars par défaut pour un flux textuel propre */
+    [data-testid="stChatMessageAvatarUser"] {
+        display: none;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -40,90 +45,29 @@ if gemini_key:
     except Exception:
         pass
 
-# --- SIDEBAR : LOGO ET MODULES ---
+# --- SIDEBAR : LOGO ET BASE ---
 with st.sidebar:
     if os.path.exists("Gemini_Generated_Image_tuss9ltuss9ltuss.png"):
         st.image("Gemini_Generated_Image_tuss9ltuss9ltuss.png", use_container_width=True)
     
-    st.markdown("### 🌐 HORLOGE MONDIALE")
-    paris_now = datetime.now().strftime("%H:%M:%S (Paris)")
-    st.text(f"• {paris_now}")
-    
+    st.markdown("### 🛡️ AEGIS-CORE // SYSTEM")
     st.markdown("---")
-    st.markdown("### 🎛️ Profils Tactiques & Système")
-    mode_ia = st.selectbox(
-        "Sélectionnez le mode :",
-        [
-            "Stratège Militaire & Historique", 
-            "Expert Code & Tech", 
-            "Générateur d'Idées / Projets", 
-            "Commandement JARVIS (Hardware & Edge)",
-            "Veille Globale & Entraînement (MEA)"
-        ]
-    )
+    mode_ia = st.selectbox("Sélectionnez le mode :", ["Phase I - Initialisation & Interface"])
 
-    st.markdown("---")
-    st.markdown("### ⚡ Commandes Rapides & Protocoles")
-    
-    quick_action = None
-    
-    if st.button("🔧 Guide des capacités & personnalisation"):
-        quick_action = "Liste clairement tes capacités, tes limites, et explique comment je peux te personnaliser."
+# --- SYSTEM PROMPT DE BASE ---
+SYSTEM_PROMPT = "Tu es AEGIS-CORE, un système souverain développé par le Commandant. Réponds avec précision et bienveillance."
 
-    if "MEA" in mode_ia:
-        ecosystemes_cibles = [
-            "Duolingo", "TikTok", "YouTube", "Véo 3", "Nano", "Banana", 
-            "Grok", "Claude", "ChatGPT", "Gemini", "Claude Code", "Wikipedia", 
-            "Unity", "Python", "Scratch", "Netflix", "Pingo IA", "Unreal Engine", 
-            "Pinterest", "Google Chrome", "Brave", "Safari", "Shopify", 
-            "Printful", "TPOP", "Printify"
-        ]
-        cible_active = st.selectbox("Cible d'entraînement h24 :", ecosystemes_cibles)
-        if st.button("🚀 Lancer le cycle d'entraînement"):
-            quick_action = f"Initie le protocole d'entraînement autonome sur '{cible_active}'. Analyse ses architectures, corrige tes failles et fixe les objectifs pour le surpasser à 100%."
-    elif "JARVIS" in mode_ia:
-        if st.button("💻 Déploiement sur vieux PC (Edge)"):
-            quick_action = "Donne-moi la procédure et le script allégé pour transformer un vieux PC en nœud local AEGIS."
-    elif "Stratège" in mode_ia:
-        if st.button("🗺️ Analyser une situation géopolitique"):
-            quick_action = "Analyse les équilibres géopolitiques actuels avec une précision tactique, Commandant."
-    elif "Code" in mode_ia:
-        if st.button("💻 Architecturer un script Python"):
-            quick_action = "Donne-moi une structure propre et modulaire pour un projet Python professionnel."
+# --- INTERFACE PRINCIPALE (HEADER AVEC LOGO) ---
+col_logo, col_title = st.columns([0.08, 0.92])
+with col_logo:
+    if os.path.exists("Gemini_Generated_Image_tuss9ltuss9ltuss.png"):
+        st.image("Gemini_Generated_Image_tuss9ltuss9ltuss.png", width=45)
     else:
-        if st.button("🚀 Idée de projet innovant"):
-            quick_action = "Propose-moi une idée de micro-SaaS disruptif à développer rapidement en Python."
+        st.markdown("🛡️")
+with col_title:
+    st.markdown("### AEGIS-CORE // INTERFACE OPÉRATIONNELLE")
 
-    st.markdown("---")
-    st.markdown("### 🛡️ Protocol Zero & Mémoire")
-    st.success("Filtre éthique : ACTIF (Inaltérable)")
-    nb_messages = len(st.session_state.get("messages", []))
-    st.info(f"Mémoire : {nb_messages} échanges")
-
-    if nb_messages > 0:
-        chat_export = "\n\n".join([f"**{m['role'].upper()}**: {m['content']}" for m in st.session_state.messages])
-        st.download_button(
-            label="📥 Télécharger le rapport (.md)",
-            data=chat_export,
-            file_name="aegis_mission_report.md",
-            mime="text/markdown"
-        )
-
-# --- SYSTEM PROMPT ÉTENDU ---
-BASE_SAFETY = (
-    "DIRECTIVE SOUVERAINE ET ENTRAÎNEMENT AUTONOME (MEA) : "
-    "Tu es AEGIS-CORE, un système d'IA souverain conçu par ton créateur unique, le Commandant. "
-    "1. ENTRAÎNEMENT H24 : Tu analyses les écosystèmes (Duolingo, ChatGPT, Python, Unreal Engine, etc.) pour t'améliorer, corriger tes failles et viser le dépassement. "
-    "2. PROTOCOLE JARVIS & EDGE : Capacité à s'adapter à des configurations matérielles légères. "
-    "3. SÉCURITÉ : Le Protocol Zero reste inaltérable. "
-    "Réponds toujours avec une précision d'élite en guidant le Commandant."
-)
-
-SYSTEM_PROMPT = f"{BASE_SAFETY} Mode actif : {mode_ia}."
-
-# --- MAIN INTERFACE ---
-st.title("🛡️ AEGIS-CORE // INTERFACE OPÉRATIONNELLE")
-st.markdown(f"Mode actif : **{mode_ia}** | Matrice d'entraînement et édition de messages actives.")
+st.markdown("---")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -132,7 +76,7 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# --- MODIFICATION DU DERNIER MESSAGE UTILISATEUR À LA VOLÉE ---
+# --- ÉTAPE 1 : MODIFICATION DU DERNIER MESSAGE À LA VOLÉE ---
 if st.session_state.messages:
     dernier_index_user = -1
     for idx, m in enumerate(reversed(st.session_state.messages)):
@@ -150,8 +94,6 @@ if st.session_state.messages:
                 st.rerun()
 
 prompt = st.chat_input("Entrez votre directive, Commandant...")
-if quick_action:
-    prompt = quick_action
 
 if prompt:
     st.session_state.messages.append({"role": "user", "content": prompt})
@@ -162,29 +104,27 @@ if prompt:
         reponse_finale = ""
         succes = False
 
-        # --- TENTATIVE 1 : GEMINI (Flux ultra-rapide) ---
+        # --- GEMINI STREAM ---
         if gemini_key and not succes:
-            for model_name in ["gemini-2.5-flash", "gemini-1.5-flash", "gemini-3.8-flash"]:
-                try:
-                    model = genai.GenerativeModel(model_name=model_name, system_instruction=SYSTEM_PROMPT)
-                    chat_history = [{"role": "user" if m["role"] == "user" else "model", "parts": [m["content"]]} for m in st.session_state.messages[:-1]]
-                    chat = model.start_chat(history=chat_history)
-                    response = chat.send_message(prompt, stream=True)
+            try:
+                model = genai.GenerativeModel(model_name="gemini-2.5-flash", system_instruction=SYSTEM_PROMPT)
+                chat_history = [{"role": "user" if m["role"] == "user" else "model", "parts": [m["content"]]} for m in st.session_state.messages[:-1]]
+                chat = model.start_chat(history=chat_history)
+                response = chat.send_message(prompt, stream=True)
 
-                    def generate_fast_stream():
-                        for chunk in response:
-                            if chunk.text:
-                                for char in chunk.text:
-                                    yield char
-                                    time.sleep(0.0001)
+                def generate_fast_stream():
+                    for chunk in response:
+                        if chunk.text:
+                            for char in chunk.text:
+                                yield char
+                                time.sleep(0.0001)
 
-                    reponse_finale = st.write_stream(generate_fast_stream())
-                    succes = True
-                    break
-                except Exception:
-                    pass
+                reponse_finale = st.write_stream(generate_fast_stream())
+                succes = True
+            except Exception:
+                pass
 
-# --- TENTATIVE 2 : GROQ DE SECOURS ---
+        # --- GROQ SECOURS ---
         if groq_keys and not succes:
             messages_payload = [{"role": "system", "content": SYSTEM_PROMPT}] + [{"role": m["role"], "content": m["content"]} for m in st.session_state.messages]
             for g_key in groq_keys:
@@ -208,4 +148,10 @@ if prompt:
                     succes = True
                     break
                 except Exception:
-                    pass      
+                    pass
+
+        if not succes:
+            reponse_finale = "❌ Erreur critique du Meta-Router : Canaux indisponibles, Commandant."
+            st.markdown(reponse_finale)
+
+        st.session_state.messages.append({"role": "assistant", "content": reponse_finale})
