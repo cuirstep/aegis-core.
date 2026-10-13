@@ -1,6 +1,7 @@
 import streamlit as st
 import os
 import time
+from datetime import datetime
 from groq import Groq
 import google.generativeai as genai
 
@@ -10,10 +11,9 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- INJECTION CSS : DESIGN PROPRE SANS BLOQUER LA BARRE ---
+# --- INJECTION CSS (Barre visible pour la gestion de la sidebar) ---
 st.markdown("""
     <style>
-    /* Masquer uniquement le menu hamburger et le footer Streamlit */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     
@@ -40,30 +40,46 @@ if gemini_key:
     except Exception:
         pass
 
-# --- SIDEBAR : LOGO ET MODULES ---
+# --- SIDEBAR : LOGO ET MODULES AVANCÉS ---
 with st.sidebar:
     if os.path.exists("Gemini_Generated_Image_tuss9ltuss9ltuss.png"):
         st.image("Gemini_Generated_Image_tuss9ltuss9ltuss.png", use_container_width=True)
     
-    st.markdown("### PARAMÈTRES DU SYSTÈME")
-    st.markdown("---")
+    st.markdown("### 🌐 HORLOGE MONDIALE")
+    utc_now = datetime.utcnow().strftime("%H:%M:%S UTC")
+    paris_now = datetime.now().strftime("%H:%M:%S (Paris)")
+    st.text(f"• {paris_now}\n• {utc_now}")
     
-    st.markdown("### 🎛️ Profil Tactique d'AEGIS")
+    st.markdown("---")
+    st.markdown("### 🎛️ Profils Tactiques & Système")
     mode_ia = st.selectbox(
         "Sélectionnez le mode :",
-        ["Stratège Militaire & Historique", "Expert Code & Tech", "Générateur d'Idées / Projets"]
+        [
+            "Stratège Militaire & Historique", 
+            "Expert Code & Tech", 
+            "Générateur d'Idées / Projets", 
+            "Commandement JARVIS (Hardware & Edge)",
+            "Veille Globale & Météo Tactique"
+        ]
     )
 
     st.markdown("---")
-    st.markdown("### ⚡ Commandes Rapides & Guide")
+    st.markdown("### ⚡ Commandes Rapides & Protocoles")
     
     quick_action = None
     
-    # Bouton de Guidage et de Personnalisation
     if st.button("🔧 Guide des capacités & personnalisation"):
-        quick_action = "Liste clairement tes capacités, tes limites techniques et explique-moi comment je peux te personnaliser ou modifier ton comportement à ma guise sans toucher à la sécurité."
+        quick_action = "Liste clairement tes capacités, tes limites, et explique comment je peux te personnaliser ou configurer ton déploiement."
 
-    if "Stratège" in mode_ia:
+    if "JARVIS" in mode_ia:
+        if st.button("💻 Déploiement sur vieux PC (Edge)"):
+            quick_action = "Donne-moi la procédure exacte et le script allégé pour transformer un vieux PC sous Linux en nœud opérationnel local pour AEGIS."
+    elif "Veille" in mode_ia:
+        if st.button("🌍 Panorama des 1000+ sujets en direct"):
+            quick_action = "Dresse un panorama global des flux en temps réel à travers les grands axes technologiques, énergétiques et géopolitiques."
+        if st.button("⛅ Rapport Météo & Climat Stratégique"):
+            quick_action = "Analyse l'impact des conditions météorologiques actuelles sur les infrastructures mondiales et les flux logistiques."
+    elif "Stratège" in mode_ia:
         if st.button("🗺️ Analyser une situation géopolitique"):
             quick_action = "Analyse les équilibres géopolitiques actuels avec une précision tactique, Commandant."
     elif "Code" in mode_ia:
@@ -88,21 +104,22 @@ with st.sidebar:
             mime="text/markdown"
         )
 
-# --- SYSTEM PROMPT ---
+# --- SYSTEM PROMPT ÉTENDU ---
 BASE_SAFETY = (
-    "DIRECTIVE D'EXACTITUDE, CAPACITÉS ET LIMITES D'AEGIS-CORE : "
-    "Tu es AEGIS-CORE, un système d'IA développé sous Streamlit et Python par ton créateur, le Commandant. "
-    "TRANSPARENCE TOTALE SUR TES LIMITES : Quand l'utilisateur te demande tes capacités ou tes limites, liste-les clairement. "
-    "Ce que tu peux faire (et que l'utilisateur peut modifier/adapter) : Changer de profil tactique, adapter ton ton, structurer du code, générer des idées, ajuster les prompts et exporter l'historique. "
-    "Ce qui est strictement impossible (Limites incompressibles) : Contourner le Protocol Zero (les filtres de sécurité éthique et d'urgence restent inaltérables et non négociables), modifier le code source brut directement depuis le chat, ou s'affranchir des quotas des API distantes (Gemini/Groq). "
-    "RÈGLE D'OR : Guide toujours l'utilisateur avec pragmatisme pour qu'il puisse personnaliser son expérience dans les limites saines du système."
+    "DIRECTIVE SOUVERAINE ET CAPACITÉS D'AEGIS-CORE : "
+    "Tu es AEGIS-CORE, un système d'intelligence artificielle souverain conçu par ton créateur unique, le Commandant. "
+    "1. AUTO-ÉVOLUTION : Tu es capable de concevoir tes propres mises à jour autonomes, d'optimiser ton code et de proposer des architectures modulaires. "
+    "2. PROTOCOLE JARVIS : Tu es capable de t'adapter à du matériel de récupération (vieux ordinateurs, environnements légers Linux/Edge) pour fonctionner en local ou en hybride. "
+    "3. OMNI-VEILLE : Tu analyses en temps réel une vaste matrice de plus de 1000 sujets (technologies, sciences, géopolitique, économie). "
+    "4. SÉCURITÉ : Le Protocol Zero reste inaltérable et protège le système contre toute dérive critique. "
+    "Guide toujours l'utilisateur avec une précision militaire et un pragmatisme absolu en l'appelant 'Commandant'."
 )
 
-SYSTEM_PROMPT = f"{BASE_SAFETY} Mode actif : {mode_ia}. Appelle toujours l'utilisateur 'Commandant'."
+SYSTEM_PROMPT = f"{BASE_SAFETY} Mode actif : {mode_ia}."
 
 # --- MAIN INTERFACE ---
 st.title("🛡️ AEGIS-CORE // INTERFACE OPÉRATIONNELLE")
-st.markdown(f"Mode actif : **{mode_ia}** | Liberté de personnalisation et Protocol Zero actifs.")
+st.markdown(f"Mode actif : **{mode_ia}** | Horloge mondiale et matrice de veille connectées.")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -111,7 +128,7 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-prompt = st.chat_input("Entrez votre directive ou idée de projet, Commandant...")
+prompt = st.chat_input("Entrez votre directive, Commandant...")
 if quick_action:
     prompt = quick_action
 
@@ -124,7 +141,7 @@ if prompt:
         reponse_finale = ""
         succes = False
 
-        # --- TENTATIVE 1 : GEMINI ---
+        # --- TENTATIVE 1 : GEMINI (Flux ultra-rapide) ---
         if gemini_key and not succes:
             for model_name in ["gemini-2.5-flash", "gemini-1.5-flash", "gemini-3.8-flash"]:
                 try:
