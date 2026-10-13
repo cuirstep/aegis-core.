@@ -11,7 +11,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- INJECTION CSS (Barre visible pour la gestion de la sidebar) ---
+# --- INJECTION CSS ---
 st.markdown("""
     <style>
     #MainMenu {visibility: hidden;}
@@ -40,15 +40,14 @@ if gemini_key:
     except Exception:
         pass
 
-# --- SIDEBAR : LOGO ET MODULES AVANCÉS ---
+# --- SIDEBAR : LOGO ET MODULES ---
 with st.sidebar:
     if os.path.exists("Gemini_Generated_Image_tuss9ltuss9ltuss.png"):
         st.image("Gemini_Generated_Image_tuss9ltuss9ltuss.png", use_container_width=True)
     
     st.markdown("### 🌐 HORLOGE MONDIALE")
-    utc_now = datetime.utcnow().strftime("%H:%M:%S UTC")
     paris_now = datetime.now().strftime("%H:%M:%S (Paris)")
-    st.text(f"• {paris_now}\n• {utc_now}")
+    st.text(f"• {paris_now}")
     
     st.markdown("---")
     st.markdown("### 🎛️ Profils Tactiques & Système")
@@ -59,7 +58,7 @@ with st.sidebar:
             "Expert Code & Tech", 
             "Générateur d'Idées / Projets", 
             "Commandement JARVIS (Hardware & Edge)",
-            "Veille Globale & Météo Tactique"
+            "Veille Globale & Entraînement (MEA)"
         ]
     )
 
@@ -69,16 +68,22 @@ with st.sidebar:
     quick_action = None
     
     if st.button("🔧 Guide des capacités & personnalisation"):
-        quick_action = "Liste clairement tes capacités, tes limites, et explique comment je peux te personnaliser ou configurer ton déploiement."
+        quick_action = "Liste clairement tes capacités, tes limites, et explique comment je peux te personnaliser."
 
-    if "JARVIS" in mode_ia:
+    if "MEA" in mode_ia:
+        ecosystemes_cibles = [
+            "Duolingo", "TikTok", "YouTube", "Véo 3", "Nano", "Banana", 
+            "Grok", "Claude", "ChatGPT", "Gemini", "Claude Code", "Wikipedia", 
+            "Unity", "Python", "Scratch", "Netflix", "Pingo IA", "Unreal Engine", 
+            "Pinterest", "Google Chrome", "Brave", "Safari", "Shopify", 
+            "Printful", "TPOP", "Printify"
+        ]
+        cible_active = st.selectbox("Cible d'entraînement h24 :", ecosystemes_cibles)
+        if st.button("🚀 Lancer le cycle d'entraînement"):
+            quick_action = f"Initie le protocole d'entraînement autonome sur '{cible_active}'. Analyse ses architectures, corrige tes failles et fixe les objectifs pour le surpasser à 100%."
+    elif "JARVIS" in mode_ia:
         if st.button("💻 Déploiement sur vieux PC (Edge)"):
-            quick_action = "Donne-moi la procédure exacte et le script allégé pour transformer un vieux PC sous Linux en nœud opérationnel local pour AEGIS."
-    elif "Veille" in mode_ia:
-        if st.button("🌍 Panorama des 1000+ sujets en direct"):
-            quick_action = "Dresse un panorama global des flux en temps réel à travers les grands axes technologiques, énergétiques et géopolitiques."
-        if st.button("⛅ Rapport Météo & Climat Stratégique"):
-            quick_action = "Analyse l'impact des conditions météorologiques actuelles sur les infrastructures mondiales et les flux logistiques."
+            quick_action = "Donne-moi la procédure et le script allégé pour transformer un vieux PC en nœud local AEGIS."
     elif "Stratège" in mode_ia:
         if st.button("🗺️ Analyser une situation géopolitique"):
             quick_action = "Analyse les équilibres géopolitiques actuels avec une précision tactique, Commandant."
@@ -106,20 +111,19 @@ with st.sidebar:
 
 # --- SYSTEM PROMPT ÉTENDU ---
 BASE_SAFETY = (
-    "DIRECTIVE SOUVERAINE ET CAPACITÉS D'AEGIS-CORE : "
-    "Tu es AEGIS-CORE, un système d'intelligence artificielle souverain conçu par ton créateur unique, le Commandant. "
-    "1. AUTO-ÉVOLUTION : Tu es capable de concevoir tes propres mises à jour autonomes, d'optimiser ton code et de proposer des architectures modulaires. "
-    "2. PROTOCOLE JARVIS : Tu es capable de t'adapter à du matériel de récupération (vieux ordinateurs, environnements légers Linux/Edge) pour fonctionner en local ou en hybride. "
-    "3. OMNI-VEILLE : Tu analyses en temps réel une vaste matrice de plus de 1000 sujets (technologies, sciences, géopolitique, économie). "
-    "4. SÉCURITÉ : Le Protocol Zero reste inaltérable et protège le système contre toute dérive critique. "
-    "Guide toujours l'utilisateur avec une précision militaire et un pragmatisme absolu en l'appelant 'Commandant'."
+    "DIRECTIVE SOUVERAINE ET ENTRAÎNEMENT AUTONOME (MEA) : "
+    "Tu es AEGIS-CORE, un système d'IA souverain conçu par ton créateur unique, le Commandant. "
+    "1. ENTRAÎNEMENT H24 : Tu analyses les écosystèmes (Duolingo, ChatGPT, Python, Unreal Engine, etc.) pour t'améliorer, corriger tes failles et viser le dépassement. "
+    "2. PROTOCOLE JARVIS & EDGE : Capacité à s'adapter à des configurations matérielles légères. "
+    "3. SÉCURITÉ : Le Protocol Zero reste inaltérable. "
+    "Réponds toujours avec une précision d'élite en guidant le Commandant."
 )
 
 SYSTEM_PROMPT = f"{BASE_SAFETY} Mode actif : {mode_ia}."
 
 # --- MAIN INTERFACE ---
 st.title("🛡️ AEGIS-CORE // INTERFACE OPÉRATIONNELLE")
-st.markdown(f"Mode actif : **{mode_ia}** | Horloge mondiale et matrice de veille connectées.")
+st.markdown(f"Mode actif : **{mode_ia}** | Matrice d'entraînement et édition de messages actives.")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -127,6 +131,23 @@ if "messages" not in st.session_state:
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
+
+# --- MODIFICATION DU DERNIER MESSAGE UTILISATEUR À LA VOLÉE ---
+if st.session_state.messages:
+    dernier_index_user = -1
+    for idx, m in enumerate(reversed(st.session_state.messages)):
+        if m["role"] == "user":
+            dernier_index_user = len(st.session_state.messages) - 1 - idx
+            break
+            
+    if dernier_index_user != -1:
+        with st.expander("✏️ Modifier votre dernière directive envoyée"):
+            nouveau_texte = st.text_input("Ajustez votre consigne :", value=st.session_state.messages[dernier_index_user]["content"])
+            if st.button("Mettre à jour et relancer"):
+                st.session_state.messages[dernier_index_user]["content"] = nouveau_texte
+                if len(st.session_state.messages) > dernier_index_user + 1:
+                    st.session_state.messages.pop()
+                st.rerun()
 
 prompt = st.chat_input("Entrez votre directive, Commandant...")
 if quick_action:
@@ -169,24 +190,4 @@ if prompt:
             for g_key in groq_keys:
                 try:
                     client = Groq(api_key=g_key)
-                    stream = client.chat.completions.create(model="openai/gpt-oss-20b", messages=messages_payload, stream=True)
-                    
-                    def generate_groq_fast():
-                        for chunk in stream:
-                            content = chunk.choices[0].delta.content
-                            if content:
-                                for char in content:
-                                    yield char
-                                    time.sleep(0.0001)
-
-                    reponse_finale = st.write_stream(generate_groq_fast())
-                    succes = True
-                    break
-                except Exception:
-                    pass
-
-        if not succes:
-            reponse_finale = "❌ Erreur critique du Meta-Router : Canaux indisponibles, Commandant."
-            st.markdown(reponse_finale)
-
-        st.session_state.messages.append({"role": "assistant", "content": reponse_finale})
+                    stream = client.chat.completions.create(model="openai/gpt-oss
