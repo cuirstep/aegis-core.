@@ -10,12 +10,12 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- INJECTION CSS ---
+# --- INJECTION CSS : DESIGN PROPRE SANS BLOQUER LA BARRE ---
 st.markdown("""
     <style>
+    /* Masquer uniquement le menu hamburger et le footer Streamlit */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
-    header {visibility: hidden;}
     
     .stApp {
         background-color: #0e1117;
