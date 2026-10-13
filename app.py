@@ -38,14 +38,12 @@ st.markdown("""
 # --- SIDEBAR : EN-TÊTE AVEC LOGO OFFICIEL ---
 with st.sidebar:
     if os.path.exists("Gemini_Generated_Image_tuss9ltuss9ltuss.png"):
-    st.image("Gemini_Generated_Image_tuss9ltuss9ltuss.png", use_container_width=True)
-        st.image("logo.png", use_container_width=True)
+        st.image("Gemini_Generated_Image_tuss9ltuss9ltuss.png", use_container_width=True)
     else:
         st.markdown('<div class="aegis-brand">🛡️ AEGIS-CORE</div>', unsafe_allow_html=True)
-        
+
     st.markdown("### PARAMÈTRES DU SYSTÈME")
     st.markdown("---")
-
 # Affichage du titre personnalisé dans la barre latérale
 
 # --- API KEYS & CONFIG ---
