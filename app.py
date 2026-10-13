@@ -7,7 +7,7 @@ import google.generativeai as genai
 # Configuration de la page avec le logo en favicon
 st.set_page_config(
     page_title="AEGIS-CORE // OS", 
-    page_icon="logo.png" if os.path.exists("logo.png") else "🛡️", 
+  page_icon="Gemini_Generated_Image_tuss9ltuss9ltuss.png" if os.path.exists("Gemini_Generated_Image_tuss9ltuss9ltuss.png") else "🛡️", 
     layout="wide"
 )
 
@@ -37,7 +37,8 @@ st.markdown("""
 
 # --- SIDEBAR : EN-TÊTE AVEC LOGO OFFICIEL ---
 with st.sidebar:
-    if os.path.exists("logo.png"):
+    if os.path.exists("Gemini_Generated_Image_tuss9ltuss9ltuss.png"):
+    st.image("Gemini_Generated_Image_tuss9ltuss9ltuss.png", use_container_width=True)
         st.image("logo.png", use_container_width=True)
     else:
         st.markdown('<div class="aegis-brand">🛡️ AEGIS-CORE</div>', unsafe_allow_html=True)
