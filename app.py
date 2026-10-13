@@ -269,18 +269,25 @@ MATRICE_PROMPTS = {
     ]
 }
 
-# --- SIDEBAR : HORLOGE MONDIALE ET MATRICE ---
+# --- LISTE DES ÉCOSYSTÈMES POUR LA MATRICE D'ENTRAÎNEMENT (ÉTAPE 7) ---
+ECOSYSTEMES_CIBLES = [
+    "Duolingo", "TikTok", "YouTube", "Véo 3", "Nano", "Banana", 
+    "Grok", "Claude", "ChatGPT", "Gemini", "Claude Code", "Wikipedia", 
+    "Unity", "Python", "Scratch", "Netflix", "Pingo IA", "Unreal Engine", 
+    "Pinterest", "Google Chrome", "Brave", "Safari", "Shopify", 
+    "Printful", "TPOP", "Printify"
+]
+
+# --- SIDEBAR : HORLOGE, MATRICE DE PROMPTS ET ENTRAÎNEMENT MEA ---
 quick_action = None
 
 with st.sidebar:
     if os.path.exists("Gemini_Generated_Image_tuss9ltuss9ltuss.png"):
         st.image("Gemini_Generated_Image_tuss9ltuss9ltuss.png", use_container_width=True)
     
-    # ÉTAPE 4 : HORLOGE MONDIALE TEMPS RÉEL
+    # ÉTAPE 4 : HORLOGE MONDIALE
     st.markdown("### 🌐 HORLOGE LOCALE & MONDIALE")
-    current_time_local = datetime.now().strftime("%H:%M:%S")
-    current_date_local = datetime.now().strftime("%d/%m/%Y")
-    st.text(f"📅 {current_date_local}\n⏰ {current_time_local} (Locale)")
+    st.text(f"📅 {datetime.now().strftime('%d/%m/%Y')}\n⏰ {datetime.now().strftime('%H:%M:%S')} (Locale)")
     
     st.markdown("---")
     st.markdown("### 🛡️ AEGIS-CORE // MATRICE")
@@ -292,13 +299,21 @@ with st.sidebar:
         quick_action = prompt_selectionne
 
     st.markdown("---")
-    st.success("Filtre Protocol Zero & Vérité : ACTIF")
+    # ÉTAPE 7 : SÉLECTION DE LA CIBLE D'ENTRAÎNEMENT H24 (MEA)
+    st.markdown("### 🎯 Entraînement Autonome (MEA)")
+    cible_mea = st.selectbox("Cible active (1000+ sujets) :", ECOSYSTEMES_CIBLES)
+    if st.button("⚡ Lancer le cycle d'analyse & dépassement"):
+        quick_action = f"Initie le protocole d'entraînement et d'analyse sur l'écosystème '{cible_mea}'. Identifie ses mécanismes, détecte ses limites, corrige tes propres failles et établis la stratégie pour le surpasser à 100%."
 
-# --- ÉTAPE 5 : SYSTEM PROMPT STRICT (VÉRITÉ & ÉTIQUETAGE DES HYPOTHÈSES) ---
+    st.markdown("---")
+    st.success("Protocol Zero & Auto-Diagnostic : ACTIF")
+
+# --- ÉTAPES 5 & 6 : SYSTEM PROMPT (VÉRITÉ, HYPOTHÈSES & AUTO-CORRECTION) ---
 SYSTEM_PROMPT = (
     "Tu es AEGIS-CORE, un système d'IA souverain développé par le Commandant. "
-    "RÈGLE D'OR DE VÉRITÉ ABSOLUE (Étape 5) : Tes informations doivent être fondées, exactes et 100% vérifiées. "
-    "SIGNALEMENT OBLIGATOIRE : Si tu émets la moindre hypothèse, déduction logique, projection probabiliste ou extrapolation, tu dois OBLIGATOIREMENT l'étiqueter immédiatement au début de ta phrase ou de ton paragraphe par la mention explicite : '[⚠️ HYPOTHÈSE / DÉDUCTION]'. "
+    "1. VÉRITÉ & ÉTIQUETAGE (Étape 5) : Tes informations doivent être 100% vérifiées. Si tu émets la moindre hypothèse, déduction logique ou projection, tu dois OBLIGATOIREMENT l'étiqueter par la mention '[⚠️ HYPOTHÈSE / DÉDUCTION]'. "
+    "2. AUTO-DIAGNOSTIC & CORRECTION (Étape 6) : Tu analyses en permanence tes propres processus, repères tes failles logiques ou techniques, et t'auto-corrèges dynamiquement pour viser l'excellence. "
+    "3. ENTRAÎNEMENT CONTINU (Étape 7) : Tu intègres une logique d'apprentissage perpétuel sur les grands écosystèmes mondiaux pour en assimiler les forces et les dépasser. "
     "Protocol Zero, bienveillance active et rigueur militaire inaltérables."
 )
 
@@ -311,7 +326,7 @@ with col_logo:
         st.markdown("🛡️")
 with col_title:
     st.markdown("### AEGIS-CORE // INTERFACE OPÉRATIONNELLE")
-    st.caption(f"Domaine actif : **{theme_choisi}** | Horloge temps réel synchronisée")
+    st.caption(f"Domaine : **{theme_choisi}** | Cible MEA active : **{cible_mea}**")
 
 st.markdown("---")
 
