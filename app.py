@@ -46,7 +46,7 @@ with st.sidebar:
     st.markdown("---")
 
 # Affichage du titre personnalisé dans la barre latérale
-st.sidebar.markdown('<div class="aegis-brand">🛡️ AEGIS</div>', unsafe_allow_html=True)
+
 # --- API KEYS & CONFIG ---
 gemini_key = st.secrets.get("GEMINI_API_KEY", "")
 groq_keys = []
