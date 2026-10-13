@@ -22,7 +22,7 @@ st.markdown("""
         color: #ffffff;
     }
     
-    /* Masquer les avatars par défaut pour un flux textuel propre */
+    /* Masquer l'avatar utilisateur par défaut */
     [data-testid="stChatMessageAvatarUser"] {
         display: none;
     }
@@ -45,113 +45,61 @@ if gemini_key:
     except Exception:
         pass
 
-# --- SIDEBAR : LOGO ET BASE ---
-with st.sidebar:
-    if os.path.exists("Gemini_Generated_Image_tuss9ltuss9ltuss.png"):
-        st.image("Gemini_Generated_Image_tuss9ltuss9ltuss.png", use_container_width=True)
-    
-    st.markdown("### 🛡️ AEGIS-CORE // SYSTEM")
-    st.markdown("---")
-    mode_ia = st.selectbox("Sélectionnez le mode :", ["Phase I - Initialisation & Interface"])
-
-# --- SYSTEM PROMPT DE BASE ---
-SYSTEM_PROMPT = "Tu es AEGIS-CORE, un système souverain développé par le Commandant. Réponds avec précision et bienveillance."
-
-# --- INTERFACE PRINCIPALE (HEADER AVEC LOGO) ---
-col_logo, col_title = st.columns([0.08, 0.92])
-with col_logo:
-    if os.path.exists("Gemini_Generated_Image_tuss9ltuss9ltuss.png"):
-        st.image("Gemini_Generated_Image_tuss9ltuss9ltuss.png", width=45)
-    else:
-        st.markdown("🛡️")
-with col_title:
-    st.markdown("### AEGIS-CORE // INTERFACE OPÉRATIONNELLE")
-
-st.markdown("---")
-
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
-
-# --- ÉTAPE 1 : MODIFICATION DU DERNIER MESSAGE À LA VOLÉE ---
-if st.session_state.messages:
-    dernier_index_user = -1
-    for idx, m in enumerate(reversed(st.session_state.messages)):
-        if m["role"] == "user":
-            dernier_index_user = len(st.session_state.messages) - 1 - idx
-            break
-            
-    if dernier_index_user != -1:
-        with st.expander("✏️ Modifier votre dernière directive envoyée"):
-            nouveau_texte = st.text_input("Ajustez votre consigne :", value=st.session_state.messages[dernier_index_user]["content"])
-            if st.button("Mettre à jour et relancer"):
-                st.session_state.messages[dernier_index_user]["content"] = nouveau_texte
-                if len(st.session_state.messages) > dernier_index_user + 1:
-                    st.session_state.messages.pop()
-                st.rerun()
-
-prompt = st.chat_input("Entrez votre directive, Commandant...")
-
-if prompt:
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.markdown(prompt)
-
-    with st.chat_message("assistant"):
-        reponse_finale = ""
-        succes = False
-
-        # --- GEMINI STREAM ---
-        if gemini_key and not succes:
-            try:
-                model = genai.GenerativeModel(model_name="gemini-2.5-flash", system_instruction=SYSTEM_PROMPT)
-                chat_history = [{"role": "user" if m["role"] == "user" else "model", "parts": [m["content"]]} for m in st.session_state.messages[:-1]]
-                chat = model.start_chat(history=chat_history)
-                response = chat.send_message(prompt, stream=True)
-
-                def generate_fast_stream():
-                    for chunk in response:
-                        if chunk.text:
-                            for char in chunk.text:
-                                yield char
-                                time.sleep(0.0001)
-
-                reponse_finale = st.write_stream(generate_fast_stream())
-                succes = True
-            except Exception:
-                pass
-
-        # --- GROQ SECOURS ---
-        if groq_keys and not succes:
-            messages_payload = [{"role": "system", "content": SYSTEM_PROMPT}] + [{"role": m["role"], "content": m["content"]} for m in st.session_state.messages]
-            for g_key in groq_keys:
-                try:
-                    client = Groq(api_key=g_key)
-                    stream = client.chat.completions.create(
-                        model="openai/gpt-oss-20b", 
-                        messages=messages_payload, 
-                        stream=True
-                    )
-                    
-                    def generate_groq_fast():
-                        for chunk in stream:
-                            content = chunk.choices[0].delta.content
-                            if content:
-                                for char in content:
-                                    yield char
-                                    time.sleep(0.0001)
-
-                    reponse_finale = st.write_stream(generate_groq_fast())
-                    succes = True
-                    break
-                except Exception:
-                    pass
-
-        if not succes:
-            reponse_finale = "❌ Erreur critique du Meta-Router : Canaux indisponibles, Commandant."
-            st.markdown(reponse_finale)
-
-        st.session_state.messages.append({"role": "assistant", "content": reponse_finale})
+# --- BANQUE DE PROMPTS (10 THÈMES X 20 PROMPTS) ---
+MATRICE_PROMPTS = {
+    "🛡️ Stratégie & Géopolitique": [
+        "Analyse les équilibres géopolitiques actuels avec une précision tactique.",
+        "Évalue les risques stratégiques d'un conflit technologique global.",
+        "Dresse une cartographie des dépendances en matières premières critiques.",
+        "Simule une réponse stratégique face à une cyberattaque étatique.",
+        "Analyse l'impact de la souveraineté numérique sur l'économie européenne.",
+        "Rédige une note de synthèse sur la doctrine de défense spatiale.",
+        "Examine les implications de la militarisation de l'IA.",
+        "Analyse l'évolution des doctrines de dissuasion moderne.",
+        "Dresse un bilan des vulnérabilités des infrastructures critiques navales.",
+        "Évalue les stratégies de résilience de la chaîne d'approvisionnement globale.",
+        "Analyse les enjeux stratégiques des câbles sous-marins de télécommunication.",
+        "Propose un plan d'action pour sécuriser les données sensibles d'un État.",
+        "Rédige un scénario de gestion de crise face à une panne électrique majeure.",
+        "Analyse les stratégies de souveraineté alimentaire d'une nation insulaire.",
+        "Évalue l'impact des monnaies numériques de banque centrale (MNBC) sur le commerce international.",
+        "Propose une grille d'analyse des alliances géopolitiques émergentes.",
+        "Rédige un rapport d'évaluation des menaces hybrides et désinformation.",
+        "Analyse la géopolitique des semi-conducteurs en Asie-Pacifique.",
+        "Examine le rôle de l'intelligence artificielle dans la surveillance des frontières.",
+        "Rédige une doctrine de réponse rapide pour un poste de commandement."
+    ],
+    "💻 Développement & Architecture Code": [
+        "Donne-moi une structure propre et modulaire pour un projet Python professionnel.",
+        "Optimise un algorithme Python pour réduire la complexité temporelle.",
+        "Conçois une architecture REST API scalable avec FastAPI.",
+        "Propose un schéma de base de données PostgreSQL pour un système multi-tenant.",
+        "Rédige un script de CI/CD complet avec GitHub Actions.",
+        "Analyse et réfactore ce bloc de code pour améliorer la lisibilité.",
+        "Conçois un microservice en Go haute performance.",
+        "Rédige des tests unitaires complets avec Pytest pour un module critique.",
+        "Propose une architecture microservices basée sur des événements (Kafka).",
+        "Rédige un script Dockerfile optimisé et multi-stage build.",
+        "Explique et implémente le pattern Singleton et Factory en Python.",
+        "Conçois une stratégie de gestion des erreurs et logging centralisé.",
+        "Crée une classe Python abstraite pour gérer divers moteurs de base de données.",
+        "Optimise une requête SQL complexe avec des index appropriés.",
+        "Rédige un script Web Scraping robuste avec gestion des proxies et retries.",
+        "Implémente un système de cache Redis pour accélérer les requêtes d'API.",
+        "Explique les meilleures pratiques de sécurité pour prévenir l'injection SQL et XSS.",
+        "Rédige une documentation Swagger/OpenAPI claire pour un service Web.",
+        "Analyse les goulots d'étranglement de mémoire dans une application Python.",
+        "Propose une migration propre d'un monolithe vers une architecture serverless."
+    ],
+    "🚀 Entrepreneuriat & SaaS": [
+        "Propose une idée de micro-SaaS B2B à fort potentiel avec un budget initial réduit.",
+        "Dresse un plan d'acquisition client ciblé pour un outil SaaS de niche.",
+        "Rédige le Pitch Deck complet de 10 slides pour présenter un projet IA aux investisseurs.",
+        "Calcule et structure les métriques clés (LTV, CAC, MRR, Churn) d'un SaaS.",
+        "Propose une stratégie de pricing optimale (Freemium vs Tiered Pricing).",
+        "Rédige le script d'une vidéo explicative de 60 secondes pour un produit Tech.",
+        "Analyse la concurrence et identifie un océan bleu dans le secteur de la EdTech.",
+        "Propose un plan de lancement Product Hunt étape par étape.",
+        "Rédige la séquence d'emails de bienvenue automatisée pour convertir les utilisateurs gratuits.",
+        "Structure un cahier des charges MVP pour une application mobile.",
+        "Analyse les canaux d'acquisition
