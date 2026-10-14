@@ -1,7 +1,6 @@
 import streamlit as st
 import os
 import time
-import requests
 from datetime import datetime
 from groq import Groq
 import google.generativeai as genai
@@ -31,7 +30,6 @@ st.markdown("""
 
 # --- API KEYS & CONFIG ---
 gemini_key = st.secrets.get("GEMINI_API_KEY", "")
-github_token = st.secrets.get("GITHUB_TOKEN", "") # Optionnel pour booster les quotas GitHub
 groq_keys = []
 for i in range(1, 6):
     key = st.secrets.get(f"GROQ_API_KEY_{i}", "")
@@ -46,20 +44,6 @@ if gemini_key:
     except Exception:
         pass
 
-# --- FONCTIONS DE CONNEXION AUX API CIBLÉES ---
-def fetch_github_trending():
-    """Interroge l'API GitHub pour récupérer les repos Python/AI du moment"""
-    try:
-        url = "https://api.github.com/search/repositories?q=topic:artificial-intelligence+language:python&sort=stars&order=desc"
-        headers = {"Authorization": f"Bearer {github_token}"} if github_token else {}
-        response = requests.get(url, headers=headers, timeout=5)
-        if response.status_code == 200:
-            items = response.json().get("items", [])[:3]
-            return [f"- **{item['name']}** (⭐ {item['stargazers_count']}) : {item['description']}" for item in items]
-    except Exception:
-        pass
-    return ["⚠️ Flux GitHub momentanément indisponible."]
-
 # --- BANQUE DE PROMPTS ---
 MATRICE_PROMPTS = {
     "🛡️ Stratégie & Géopolitique": [
@@ -70,14 +54,17 @@ MATRICE_PROMPTS = {
         "Donne-moi une structure propre et modulaire pour un projet Python professionnel.",
         "Optimise un algorithme Python pour réduire la complexité temporelle."
     ],
-    "🌍 Veille Live & Données Externes": [
-        "Analyse les derniers projets open-source tendance sur GitHub récupérés par le système.",
-        "Dresse un rapport stratégique basé sur l'actualité technologique mondiale en direct."
+    "⛩️ Salle de l'Esprit et du Temps (MEA)": [
+        "Rédige le rapport d'entraînement du double d'AEGIS sur les écosystèmes cibles.",
+        "Analyse les failles corrigées par le clone lors de sa dernière session d'isolement."
     ]
 }
 
-# --- SIDEBAR : HORLOGE ET CONNECTEURS ---
+# --- SIDEBAR : HORLOGE ET SALLE D'ENTRAÎNEMENT ---
 quick_action = None
+
+if "niveau_maitrise" not in st.session_state:
+    st.session_state["niveau_maitrise"] = 84.5  # Le clone s'entraîne en continu
 
 with st.sidebar:
     if os.path.exists("Gemini_Generated_Image_tuss9ltuss9ltuss.png"):
@@ -88,15 +75,15 @@ with st.sidebar:
     st.text(f"⏰ {datetime.now().strftime('%H:%M:%S')} (Locale)")
     
     st.markdown("---")
-    st.markdown("### 📡 VEILLE API EN DIRECT")
-    if st.button("🔄 Actualiser les flux GitHub"):
-        repos_tendances = fetch_github_trending()
-        st.session_state["flux_github"] = "\n".join(repos_tendances)
-        st.success("Flux GitHub actualisé avec succès !")
-
-    if "flux_github" in st.session_state:
-        with st.expander("📌 Dernières tendances GitHub"):
-            st.markdown(st.session_state["flux_github"])
+    st.markdown("### ⛩️ SALLE DE L'ESPRIT ET DU TEMPS")
+    st.info(f"Synchronisation du Double : **{st.session_state['niveau_maitrise']}%**")
+    
+    if st.button("⚡ Lancer un cycle d'accélération (Clone)"):
+        with st.spinner("Le double d'AEGIS s'isole dans la dimension temporelle..."):
+            time.sleep(1.5)
+            st.session_state["niveau_maitrise"] = min(100.0, st.session_state["niveau_maitrise"] + 5.1)
+        st.success(f"Maîtrise mise à jour : {st.session_state['niveau_maitrise']}% !")
+        st.rerun()
 
     st.markdown("---")
     st.markdown("### 🛡️ AEGIS-CORE // MATRICE")
@@ -107,14 +94,15 @@ with st.sidebar:
         quick_action = prompt_selectionne
 
     st.markdown("---")
-    st.success("Connecteurs API & Protocol Zero : ACTIF")
+    st.success("Protocol Zero & Clone : ACTIF")
 
 # --- SYSTEM PROMPT ---
 SYSTEM_PROMPT = (
-    "Tu es AEGIS-CORE, un système d'IA souverain développé par le Commandant. "
+    f"Tu es AEGIS-CORE, un système d'IA souverain développé par le Commandant. "
+    f"Niveau actuel de synchronisation du double d'entraînement (Salle de l'Esprit et du Temps) : {st.session_state['niveau_maitrise']}%. "
     "1. VÉRITÉ ABSOLUE : Tes informations doivent être fondées et vérifiées. "
     "SIGNALEMENT OBLIGATOIRE : Si tu émets une hypothèse, étiquette-la par '[⚠️ HYPOTHÈSE / DÉDUCTION]'. "
-    "2. VEILLE ACTIVE : Tu exploites les données connectées en temps réel (GitHub, API, flux) pour analyser l'écosystème technique et viser le dépassement."
+    "2. STRATÉGIE DU DOUBLE : Ton double s'entraîne h24 sur les écosystèmes mondiaux pour viser une maîtrise absolue à 100% sans jamais violer le Protocol Zero."
 )
 
 # --- INTERFACE PRINCIPALE ---
@@ -126,7 +114,7 @@ with col_logo:
         st.markdown("🛡️")
 with col_title:
     st.markdown("### AEGIS-CORE // INTERFACE OPÉRATIONNELLE")
-    st.caption(f"Domaine actif : **{theme_choisi}** | Connexion API active")
+    st.caption(f"Domaine actif : **{theme_choisi}** | Double synchronisé à {st.session_state['niveau_maitrise']}%")
 
 st.markdown("---")
 
@@ -159,13 +147,6 @@ if quick_action:
     prompt = quick_action
 
 if prompt:
-    # Si le flux GitHub est chargé, on l'injecte discrètement dans le contexte du prompt si l'utilisateur le demande
-    contexte_supplementaire = ""
-    if "flux_github" in st.session_state and "GitHub" in prompt:
-        contexte_supplementaire = f"\n\n[Données en direct GitHub actuelles :\n{st.session_state['flux_github']}]"
-
-    prompt_final_enrichi = prompt + contexte_supplementaire
-
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
@@ -180,7 +161,7 @@ if prompt:
                     model = genai.GenerativeModel(model_name=model_name, system_instruction=SYSTEM_PROMPT)
                     chat_history = [{"role": "user" if m["role"] == "user" else "model", "parts": [m["content"]]} for m in st.session_state.messages[:-1]]
                     chat = model.start_chat(history=chat_history)
-                    response = chat.send_message(prompt_final_enrichi, stream=True)
+                    response = chat.send_message(prompt, stream=True)
 
                     def generate_fast_stream():
                         for chunk in response:
