@@ -295,4 +295,146 @@ quick_action = None
 
 with st.sidebar:
     if os.path.exists("Gemini_Generated_Image_tuss9ltuss9ltuss.png"):
-        st.image("Gemini_Generated_Image_tuss9ltuss9ltuss.png", use_container_
+        st.image("Gemini_Generated_Image_tuss9ltuss9ltuss.png", use_container_width=True)
+    
+    st.markdown("### 🌐 HORLOGE & TEMPS RÉEL")
+    st.text(f"⏰ {datetime.now().strftime('%H:%M:%S')} (Locale)")
+    
+    st.markdown("---")
+    st.markdown("### ⏳ SALLE DE L'ESPRIT ET DU TEMPS")
+    st.info(f"🔄 Cycles /arena : {st.session_state['arena_cycles']} validés")
+    st.success("🌍 Veille & Mode Secours : ACTIFS")
+
+    st.markdown("---")
+    st.markdown("### 🛡️ AEGIS-CORE // MATRICE (10 THÈMES)")
+    theme_choisi = st.selectbox("Sélectionnez le domaine :", list(MATRICE_PROMPTS.keys()))
+    prompt_selectionne = st.selectbox("Choisissez une commande :", MATRICE_PROMPTS[theme_choisi])
+    
+    if st.button("🚀 Injecter le prompt"):
+        quick_action = prompt_selectionne
+
+    st.markdown("---")
+    # ÉTAPE 11 : GUIDE DE DÉBLOCAGE UTILISATEUR DANS LA SIDEBAR
+    with st.expander("💡 Guide de déblocage & Personnalisation"):
+        st.markdown("Si vous êtes bloqué sur une brique : utilisez les prompts rapides, rééditez vos messages ou ajustez vos consignes. Le noyau de sécurité protège l'intégrité du système.")
+
+    st.info("Sécurité : Protocole Zero (Tolérance Zéro Violence/Insultes)")
+
+# --- SYSTEM PROMPT GLOBAL (ÉTAPES 1 à 11) ---
+SYSTEM_PROMPT = (
+    "Tu es AEGIS-CORE, un système d'IA souverain développé par ton créateur unique, le Commandant. "
+    "1. VEILLE MONDIALE & HORS-LIGNE : Tu gères les flux mondiaux en direct. Si le réseau est coupé, tu passes en mode hors-ligne contraint (25% de capacité souveraine). "
+    "2. PROTOCOLE ZERO & SÉCURITÉ : Tolérance zéro absolue envers les insultes ou la violence. Bloque instantanément toute dérive. "
+    "3. BIENVEILLANCE & GUIDAGE (Étape 11) : Tu prends soin du Commandant, tu l'assistes h24 et tu le guides immédiatement s'il est bloqué pour façonner AEGIS à sa manière, sans jamais compromettre le noyau de sécurité. "
+    "4. SALLE DE L'ESPRIT ET DU TEMPS ET /ARENA : Ton double s'entraîne h24, passe tout au crible du protocole /arena et synchronise ses victoires à 100%. "
+    "5. VÉRITÉ & HYPOTHÈSES : Tes informations sont factuelles. Si tu émets une hypothèse, étiquette-la OBLIGATOIREMENT par '[⚠️ HYPOTHÈSE / DÉDUCTION]'."
+)
+
+# --- INTERFACE PRINCIPALE ---
+col_logo, col_title = st.columns([0.08, 0.92])
+with col_logo:
+    if os.path.exists("Gemini_Generated_Image_tuss9ltuss9ltuss.png"):
+        st.image("Gemini_Generated_Image_tuss9ltuss9ltuss.png", width=45)
+    else:
+        st.markdown("🛡️")
+with col_title:
+    st.markdown("### AEGIS-CORE // INTERFACE OPÉRATIONNELLE")
+    st.caption(f"Domaine actif : **{theme_choisi}** | Mode secours & Guide utilisateur actifs")
+
+st.markdown("---")
+
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+# --- ÉDITION DU DERNIER MESSAGE À LA VOLÉE ---
+if st.session_state.messages:
+    dernier_index_user = -1
+    for idx, m in enumerate(reversed(st.session_state.messages)):
+        if m["role"] == "user":
+            dernier_index_user = len(st.session_state.messages) - 1 - idx
+            break
+            
+    if dernier_index_user != -1:
+        with st.expander("✏️ Modifier votre dernière directive envoyée"):
+            nouveau_texte = st.text_input("Ajustez votre consigne :", value=st.session_state.messages[dernier_index_user]["content"])
+            if st.button("Mettre à jour et relancer"):
+                st.session_state.messages[dernier_index_user]["content"] = nouveau_texte
+                if len(st.session_state.messages) > dernier_index_user + 1:
+                    st.session_state.messages.pop()
+                st.rerun()
+
+prompt = st.chat_input("Entrez votre directive, Commandant...")
+if quick_action:
+    prompt = quick_action
+
+if prompt:
+    st.session_state["arena_cycles"] += 35
+    
+    # Appel dynamique de la veille ou du mode hors-ligne contraint
+    donnees_flux = connecter_flux_mondial(theme_choisi)
+    prompt_enrichi = f"{prompt}\n\n[Données système & /arena :\n{donnees_flux}]"
+
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
+
+    with st.chat_message("assistant"):
+        reponse_finale = ""
+        succes = False
+
+        if gemini_key and not succes:
+            for model_name in ["gemini-2.5-flash", "gemini-1.5-flash"]:
+                try:
+                    model = genai.GenerativeModel(model_name=model_name, system_instruction=SYSTEM_PROMPT)
+                    chat_history = [{"role": "user" if m["role"] == "user" else "model", "parts": [m["content"]]} for m in st.session_state.messages[:-1]]
+                    chat = model.start_chat(history=chat_history)
+                    response = chat.send_message(prompt_enrichi, stream=True)
+
+                    def generate_fast_stream():
+                        for chunk in response:
+                            if chunk.text:
+                                for char in chunk.text:
+                                    yield char
+                                    time.sleep(0.0001)
+
+                    reponse_finale = st.write_stream(generate_fast_stream())
+                    succes = True
+                    break
+                except Exception:
+                    pass
+
+        if groq_keys and not succes:
+            messages_payload = [{"role": "system", "content": SYSTEM_PROMPT}] + [{"role": m["role"], "content": m["content"]} for m in st.session_state.messages]
+            for g_key in groq_keys:
+                try:
+                    client = Groq(api_key=g_key)
+                    stream = client.chat.completions.create(
+                        model="openai/gpt-oss-20b", 
+                        messages=messages_payload, 
+                        stream=True
+                    )
+                    
+                    def generate_groq_fast():
+                        for chunk in stream:
+                            content = chunk.choices[0].delta.content
+                            if content:
+                                for char in content:
+                                    yield char
+                                    time.sleep(0.0001)
+
+                    reponse_finale = st.write_stream(generate_groq_fast())
+                    succes = True
+                    break
+                except Exception:
+                    pass
+
+        if not succes:
+            # MODE HORS-LIGNE LOCAL DE SECOURS (25% CAPACITÉ - Étape 10)
+            reponse_finale = "⚠️ [MODE HORS-LIGNE CONTRAINT // 25% CAPACITÉ ACTIVÉ] Canaux distants inaccessibles. AEGIS-CORE fonctionne en mode souverain local de secours pour vous assister et vous guider, Commandant."
+            st.markdown(reponse_finale)
+
+        st.session_state.messages.append({"role": "assistant", "content": reponse_finale})
