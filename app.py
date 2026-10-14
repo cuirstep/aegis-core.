@@ -15,7 +15,7 @@ st.set_page_config(
 if "intro_affichee" not in st.session_state:
     st.session_state["intro_affichee"] = False
 
-# --- INJECTION CSS & ANIMATION EPHEMERE ---
+# --- INJECTION CSS & ANIMATION ÉPHÉMÈRE ---
 st.markdown("""
     <style>
     #MainMenu {visibility: hidden;}
@@ -281,4 +281,4 @@ if prompt:
             reponse_finale = "❌ Erreur de réseau : Les canaux distants ne répondent pas."
             st.markdown(reponse_finale)
 
-        messages_actuels.append({"role": "assistant", "content": reponse
+        messages_actuels.append({"role": "assistant", "content": reponse_finale})
