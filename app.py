@@ -272,64 +272,27 @@ if messages_actuels:
                 prompt_a_traiter = nouveau_texte
                 st.rerun()
 
+# --- ÉDITION ROBUSTE DU DERNIER MESSAGE ---
+prompt_a_traiter = None
+
+if messages_actuels:
+    dernier_index_user = -1
+    for idx, m in enumerate(reversed(messages_actuels)):
+        if m["role"] == "user":
+            dernier_index_user = len(messages_actuels) - 1 - idx
+            break
+            
+    if dernier_index_user != -1:
+        with st.expander("✏️ Modifier votre dernière directive"):
+            nouveau_texte = st.text_input("Ajustez votre consigne :", value=messages_actuels[dernier_index_user]["content"], key=f"edit_txt_{st.session_state['session_active']}")
+            if st.button("Mettre à jour et relancer", key=f"btn_edit_run_{st.session_state['session_active']}"):
+                st.session_state["sessions"][st.session_state["session_active"]] = messages_actuels[:dernier_index_user]
+                prompt_a_traiter = nouveau_texte
+                st.rerun()
+
 # Récupération de la saisie normale ou du quick action ou de l'édition
 prompt_input = st.chat_input("Entrez votre directive, Commandant...")
 if quick_action:
     prompt_input = quick_action
 if prompt_a_traiter:
     prompt_input = prompt_a_traiter
-
-if prompt_input:
-    messages_actuels.append({"role": "user", "content": prompt_input})
-    with st.chat_message("user"):
-        st.markdown(prompt_input)
-
-    with st.chat_message("assistant"):
-        reponse_finale = ""
-        succes = False
-
-        if gemini_key and not succes:
-            for model_name in ["gemini-2.5-flash", "gemini-1.5-flash"]:
-                try:
-                    model = genai.GenerativeModel(model_name=model_name, system_instruction=SYSTEM_PROMPT)
-                    chat_history = [{"role": "user" if m["role"] == "user" else "model", "parts": [m["content"]]} for m in messages_actuels[:-1]]
-                    chat = model.start_chat(history=chat_history)
-                    response = chat.send_message(prompt_input, stream=True)
-
-                    def generate_fast_stream():
-                        for chunk in response:
-                            if chunk.text:
-                                for char in chunk.text:
-                                    yield char
-                                    time.sleep(0.0001)
-
-                    reponse_finale = st.write_stream(generate_fast_stream())
-                    succes = True
-                    break
-                except Exception:
-                    pass
-
-  if groq_keys and not succes:
-            messages_payload = [{"role": "system", "content": SYSTEM_PROMPT}] + [{"role": m["role"], "content": m["content"]} for m in messages_actuels]
-            for g_key in groq_keys:
-                try:
-                    client = Groq(api_key=g_key)
-                    stream = client.chat.completions.create(
-                        model="openai/gpt-oss-20b", 
-                        messages=messages_payload, 
-                        stream=True
-                    )
-                    
-                    def generate_groq_fast():
-                        for chunk in stream:
-                            content = chunk.choices[0].delta.content
-                            if content:
-                                for char in content:
-                                    yield char
-                                    time.sleep(0.0001)
-
-                    reponse_finale = st.write_stream(generate_groq_fast())
-                    succes = True
-                    break
-                except Exception:
-                    pass
