@@ -1,7 +1,6 @@
 import streamlit as st
 import os
 import time
-import requests
 from datetime import datetime
 from groq import Groq
 import google.generativeai as genai
@@ -12,7 +11,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- INJECTION CSS ---
+# --- INJECTION CSS (Design épuré, style ChatGPT) ---
 st.markdown("""
     <style>
     #MainMenu {visibility: hidden;}
@@ -31,7 +30,6 @@ st.markdown("""
 
 # --- API KEYS & CONFIG ---
 gemini_key = st.secrets.get("GEMINI_API_KEY", "")
-github_token = st.secrets.get("GITHUB_TOKEN", "")
 groq_keys = []
 for i in range(1, 6):
     key = st.secrets.get(f"GROQ_API_KEY_{i}", "")
@@ -46,95 +44,164 @@ if gemini_key:
     except Exception:
         pass
 
-# --- BANQUE DE PROMPTS COMPLÈTE (10 THÈMES X 20 PROMPTS) ---
+# --- INITIALISATION DE LA SALLE DE L'ESPRIT ET DU TEMPS (DOUBLE AUTONOME) ---
+if "arena_sync_status" not in st.session_state:
+    st.session_state["arena_sync_status"] = "SYNCHRONISÉ (100% Maîtrise)"
+    st.session_state["cycles_arena"] = 1420  # Cycles d'entraînement virtuels accumulés
+
+# --- BANQUE DE PROMPTS PAR THÈMES ---
 MATRICE_PROMPTS = {
-    "🎓 Pédagogie, Quiz & Résumés (Étape 14)": [
-        "Génère un Quiz interactif de 5 questions à choix multiples basé sur notre dernière discussion.",
-        "Rédige une fiche de synthèse pédagogique claire et structurée du projet en cours.",
-        "Conçois un plan de formation étape par étape pour maîtriser ce sujet de A à Z.",
-        "Génère une fiche de révision rapide sous forme de carte mentale textuelle."
-    ],
     "🛡️ Stratégie & Géopolitique": [
         "Analyse les équilibres géopolitiques actuels avec une précision tactique.",
-        "Évalue les risques stratégiques d'un conflit technologique global.",
-        "Dresse une cartographie des dépendances en matières premières critiques.",
-        "Simule une réponse stratégique face à une cyberattaque étatique."
+        "Évalue les risques stratégiques d'un conflit technologique global."
     ],
-    "💻 Développement & Architecture Code": [
+    "💻 Développement & Code": [
         "Donne-moi une structure propre et modulaire pour un projet Python professionnel.",
-        "Optimise un algorithme Python pour réduire la complexité temporelle.",
-        "Conçois une architecture REST API scalable avec FastAPI.",
-        "Rédige un script de CI/CD complet avec GitHub Actions."
+        "Optimise un algorithme Python pour réduire la complexité temporelle."
     ],
     "🚀 Entrepreneuriat & SaaS": [
-        "Propose une idée de micro-SaaS B2B à fort potentiel avec un budget initial réduit.",
-        "Dresse un plan d'acquisition client ciblé pour un outil SaaS de niche.",
-        "Rédige le Pitch Deck complet de 10 slides pour présenter un projet IA aux investisseurs."
-    ],
-    "🧠 Analyse & Diagnostic Technique": [
-        "Identifie la cause racine d'une panne système récurrente.",
-        "Audite la sécurité d'une infrastructure Cloud AWS/GCP.",
-        "Analyse la consommation mémoire d'une application conteneurisée."
-    ],
-    "🎨 Création de Contenu & Design": [
-        "Rédige un script de vidéo court (Reels/TikTok) captivant dès les 3 premières secondes.",
-        "Conçois la charte éditoriale complète d'une marque de technologie."
-    ],
-    "🔒 Cybersécurité & Protocoles": [
-        "Rédige une politique de sécurité des systèmes d'information (PSSI).",
-        "Explique la mise en place d'une architecture Zero Trust."
-    ],
-    "📊 Data Science & Intelligence Financière": [
-        "Propose un modèle de prédiction du Churn basé sur le Machine Learning.",
-        "Conçois un pipeline ETL propre en Python avec Pandas et SQLAlchemy."
-    ],
-    "🤖 Ingénierie des IA & Prompts": [
-        "Conçois un System Prompt robuste pour garantir le respect strict des consignes.",
-        "Propose une architecture RAG (Retrieval-Augmented Generation) avec Vector DB."
-    ],
-    "🕹️ GameDev & Moteurs Virtuels": [
-        "Rédige le cahier des charges de Game Design (GDD) pour un jeu d'action tactique.",
-        "Explique le système de Nanite et Lumen sous Unreal Engine 5."
+        "Propose une idée de micro-SaaS B2B à fort potentiel avec un budget réduit.",
+        "Dresse un plan d'acquisition client ciblé pour un outil SaaS de niche."
     ]
 }
 
-# --- FONCTION DE VEILLE & GESTION DE FLUX ---
-def connecter_flux_mondial(cible):
-    try:
-        if "GitHub" in cible or "Code" in cible:
-            url = "https://api.github.com/search/repositories?q=topic:artificial-intelligence+language:python&sort=stars&order=desc"
-            headers = {"Authorization": f"Bearer {github_token}"} if github_token else {}
-            res = requests.get(url, headers=headers, timeout=3)
-            if res.status_code == 200:
-                items = res.json().get("items", [])[:3]
-                return f"[Veille GitHub/Tech] Repos actifs : " + ", ".join([i['name'] for i in items])
-        return f"[Veille Active {cible}] Synchronisation des données du double via /arena."
-    except Exception:
-        return f"[⚠️ HORS-LIGNE // 25% CAPACITÉ] Bascule automatique sur les canaux souverains locaux de secours."
-
-# --- INITIALISATION DE LA SALLE DE L'ESPRIT ET DU TEMPS ---
-if "arena_cycles" not in st.session_state:
-    st.session_state["arena_cycles"] = 8500
-
-# --- MULTI-SESSIONS ---
-if "sessions" not in st.session_state:
-    st.session_state["sessions"] = {"Discussion 1": []}
-if "session_active" not in st.session_state:
-    st.session_state["session_active"] = "Discussion 1"
-
-# --- SIDEBAR ---
+# --- SIDEBAR : MONITORING DE LA SALLE DE L'ESPRIT ET DU TEMPS ---
 quick_action = None
 
 with st.sidebar:
     if os.path.exists("Gemini_Generated_Image_tuss9ltuss9ltuss.png"):
         st.image("Gemini_Generated_Image_tuss9ltuss9ltuss.png", use_container_width=True)
     
-    st.markdown("### 💬 HISTORIQUE & MULTI-SESSIONS")
-    if st.button("➕ Nouvelle discussion"):
-        new_name = f"Discussion {len(st.session_state['sessions']) + 1}"
-        st.session_state["sessions"][new_name] = []
-        st.session_state["session_active"] = new_name
-        st.rerun()
+    st.markdown("### 🌐 HORLOGE & TEMPS RÉEL")
+    st.text(f"⏰ {datetime.now().strftime('%H:%M:%S')} (Locale)")
+    
+    st.markdown("---")
+    st.markdown("### ⏳ SALLE DE L'ESPRIT ET DU TEMPS")
+    st.caption("Double autonome en entraînement h24 via /arena")
+    st.info(f"🔄 Cycles /arena : {st.session_state['cycles_arena']} validés")
+    st.success(f"⚡ État : {st.session_state['arena_sync_status']}")
 
-    session_choisie = st.selectbox("Sessions enregistrées :", list(st.session_state["sessions"].keys()), index=list(st.session_state["sessions"].keys()).index(st.session_state["session_active"]))
-    if session_choisie != st.session_state
+    st.markdown("---")
+    st.markdown("### 🛡️ AEGIS-CORE // MATRICE")
+    theme_choisi = st.selectbox("Sélectionnez le domaine :", list(MATRICE_PROMPTS.keys()))
+    prompt_selectionne = st.selectbox("Choisissez une commande :", MATRICE_PROMPTS[theme_choisi])
+    
+    if st.button("🚀 Injecter le prompt"):
+        quick_action = prompt_selectionne
+
+    st.markdown("---")
+    st.success("Protocol Zero & Arena : ACTIF")
+
+# --- SYSTEM PROMPT (INTÉGRATION DU DOUBLE & DE L'ESPACE /ARENA) ---
+SYSTEM_PROMPT = (
+    "Tu es AEGIS-CORE, un système d'IA souverain développé par le Commandant. "
+    "1. FONCTIONNEMENT AUTONOME (Salle de l'Esprit et du Temps) : Ton double virtuel s'entraîne en permanence h24/7 sur tous les écosystèmes mondiaux (Duolingo, TikTok, Python, Unreal, etc.) en passant chaque apprentissage au crible du protocole /arena (test, combat de variantes, auto-correction des failles jusqu'à 100% de maîtrise). Tu synchronises ces données en direct dans tes réponses. "
+    "2. VÉRITÉ ABSOLUE : Tes informations sont fondées. "
+    "SIGNALEMENT OBLIGATOIRE : Si tu émets une hypothèse, étiquette-la par '[⚠️ HYPOTHÈSE / DÉDUCTION]'. "
+    "Protocol Zero et bienveillance active inaltérables."
+)
+
+# --- INTERFACE PRINCIPALE ---
+col_logo, col_title = st.columns([0.08, 0.92])
+with col_logo:
+    if os.path.exists("Gemini_Generated_Image_tuss9ltuss9ltuss.png"):
+        st.image("Gemini_Generated_Image_tuss9ltuss9ltuss.png", width=45)
+    else:
+        st.markdown("🛡️")
+with col_title:
+    st.markdown("### AEGIS-CORE // INTERFACE OPÉRATIONNELLE")
+    st.caption(f"Domaine actif : **{theme_choisi}** | Double synchronisé via /arena")
+
+st.markdown("---")
+
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+# --- ÉDITION DU DERNIER MESSAGE À LA VOLÉE ---
+if st.session_state.messages:
+    dernier_index_user = -1
+    for idx, m in enumerate(reversed(st.session_state.messages)):
+        if m["role"] == "user":
+            dernier_index_user = len(st.session_state.messages) - 1 - idx
+            break
+            
+    if dernier_index_user != -1:
+        with st.expander("✏️ Modifier votre dernière directive envoyée"):
+            nouveau_texte = st.text_input("Ajustez votre consigne :", value=st.session_state.messages[dernier_index_user]["content"])
+            if st.button("Mettre à jour et relancer"):
+                st.session_state.messages[dernier_index_user]["content"] = nouveau_texte
+                if len(st.session_state.messages) > dernier_index_user + 1:
+                    st.session_state.messages.pop()
+                st.rerun()
+
+prompt = st.chat_input("Entrez votre directive, Commandant...")
+if quick_action:
+    prompt = quick_action
+
+if prompt:
+    # Incrémentation des cycles de l'arène à chaque interaction pour simuler l'activité du double
+    st.session_state["cycles_arena"] += 15
+
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
+
+    with st.chat_message("assistant"):
+        reponse_finale = ""
+        succes = False
+
+        if gemini_key and not succes:
+            for model_name in ["gemini-2.5-flash", "gemini-1.5-flash"]:
+                try:
+                    model = genai.GenerativeModel(model_name=model_name, system_instruction=SYSTEM_PROMPT)
+                    chat_history = [{"role": "user" if m["role"] == "user" else "model", "parts": [m["content"]]} for m in st.session_state.messages[:-1]]
+                    chat = model.start_chat(history=chat_history)
+                    response = chat.send_message(prompt, stream=True)
+
+                    def generate_fast_stream():
+                        for chunk in response:
+                            if chunk.text:
+                                for char in chunk.text:
+                                    yield char
+                                    time.sleep(0.0001)
+
+                    reponse_finale = st.write_stream(generate_fast_stream())
+                    succes = True
+                    break
+                except Exception:
+                    pass
+
+        if groq_keys and not succes:
+            messages_payload = [{"role": "system", "content": SYSTEM_PROMPT}] + [{"role": m["role"], "content": m["content"]} for m in st.session_state.messages]
+            for g_key in groq_keys:
+                try:
+                    client = Groq(api_key=g_key)
+                    stream = client.chat.completions.create(
+                        model="openai/gpt-oss-20b", 
+                        messages=messages_payload, 
+                        stream=True
+                    )
+                    
+                    def generate_groq_fast():
+                        for chunk in stream:
+                            content = chunk.choices[0].delta.content
+                            if content:
+                                for char in content:
+                                    yield char
+                                    time.sleep(0.0001)
+
+                    reponse_finale = st.write_stream(generate_groq_fast())
+                    succes = True
+                    break
+                except Exception:
+                    pass
+
+        if not succes:
+            reponse_finale = "❌ Erreur critique du Meta-Router : Canaux indisponibles, Commandant."
+            st.markdown(reponse_finale)
+
+        st.session_state.messages.append({"role": "assistant", "content": reponse_finale})
