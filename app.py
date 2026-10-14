@@ -1,5 +1,4 @@
 import streamlit as st
-import os
 import time
 from datetime import datetime
 from groq import Groq
@@ -7,27 +6,31 @@ import google.generativeai as genai
 
 st.set_page_config(
     page_title="AEGIS-CORE // OS", 
-    page_icon="Gemini_Generated_Image_tuss9ltuss9ltuss.png" if os.path.exists("Gemini_Generated_Image_tuss9ltuss9ltuss.png") else "🛡️", 
+    page_icon="https://github.com/user-attachments/assets/ad9f828c-1302-485d-bc37-2721a9eeffbe", 
     layout="wide"
 )
 
-# --- INJECTION CSS & HORLOGE JS ---
+# --- INJECTION CSS & MASQUAGE AVATARS ---
 st.markdown("""
     <style>
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
-    
-    .stApp {
-        background-color: #0e1117;
-        color: #ffffff;
-    }
-    
-    /* Masquer les avatars par défaut */
+    .stApp { background-color: #0e1117; color: #ffffff; }
     [data-testid="stChatMessageAvatarUser"], [data-testid="stChatMessageAvatarAssistant"] {
         display: none !important;
     }
     </style>
 """, unsafe_allow_html=True)
+
+# --- URLS DE VOS IMAGES OFFICIELLES ---
+IMG_LOGO = "https://github.com/user-attachments/assets/ad9f828c-1302-485d-bc37-2721a9eeffbe"
+IMG_CODE = "https://github.com/user-attachments/assets/5370f272-be05-48f1-95c4-d02d10f5610b"
+IMG_CLOCK = "https://github.com/user-attachments/assets/c4fc38bb-92e0-458f-ab56-c33c21cd06af"
+IMG_SESSIONS = "https://github.com/user-attachments/assets/dad0f252-9b4f-40eb-a289-15564aca3158"
+IMG_GUIDE = "https://github.com/user-attachments/assets/d2ab3767-3911-4a2c-bfca-c0e834f0c773"
+
+def custom_icon(url, size=24):
+    return f'<img src="{url}" width="{size}" style="vertical-align: middle; margin-right: 8px;">'
 
 # --- API KEYS & CONFIG ---
 gemini_key = st.secrets.get("GEMINI_API_KEY", "")
@@ -46,58 +49,28 @@ if gemini_key:
     except Exception:
         pass
 
-# --- MATRICE PROMPTS (SANS EMOJIS CORROMPUS) ---
+# --- MATRICE DES 20 THÈMES ---
 MATRICE_PROMPTS = {
     "Pédagogie, Quiz & Résumés": [
         "Genere un Quiz interactif de 5 questions a choix multiples base sur notre derniere discussion.",
         "Redige une fiche de synthese pedagogique claire et structuree du projet en cours.",
         "Concois un plan de formation étape par étape pour maîtriser ce sujet de A à Z.",
-        "Genere une fiche de revision rapide sous forme de carte mentale textuelle.",
-        "Explique ce concept simplement.",
-        "Redige un resume executif en 5 points cles.",
-        "Cree une etude de cas pratique basee sur notre echange.",
-        "Concois un questionnaire Vrai/Faux avec explications detaillees.",
-        "Synthetise les erreurs courantes a eviter sur ce sujet.",
-        "Redige un lexique des 10 termes fondamentaux a connaitre.",
-        "Propose un exercice d'application directe avec son corrige.",
-        "Cree un guide de demarrage rapide synthetique.",
-        "Dresse une comparaison Avant/Apresh pour illustrer le concept.",
-        "Redige une FAQ de 5 questions frequemment posees sur ce theme.",
-        "Cree un schema textuel expliquant le flux de travail étape par étape.",
-        "Redige un aide-memoire au format Markdown.",
-        "Propose 3 metaphores simples pour expliquer cette notion complexe.",
-        "Cree un plan de revision etale sur 7 jours.",
-        "Synthetise les points d'attention cruciaux a retenir absolument.",
-        "Redige une grille d'auto-evaluation des competences sur ce sujet."
+        "Genere une fiche de revision rapide sous forme de carte mentale textuelle."
     ],
-    "Strategie & Geopolitique": [
+    "Stratégie & Géopolitique": [
         "Analyse les equilibres geopolitiques actuels avec une precision tactique.",
         "Evalue les risques strategiques d'un conflit technologique global.",
-        "Dresse une cartographie des dependances en matieres premieres critiques.",
-        "Simule une reponse strategique face a une cyberattaque etatique.",
-        "Analyse l'impact de la souverainete numerique sur l'economie europeenne.",
-        "Redige une note de synthese sur la doctrine de defense spatiale.",
-        "Examine les implications de la militarisation de l'IA.",
-        "Analyse l'evolution des doctrines de dissuasion moderne.",
-        "Dresse un bilan des vulnerabilites des infrastructures critiques navales.",
-        "Evalue les strategies de resilience de la chaine d'approvisionnement globale."
+        "Dresse une cartographie des dependances en matieres premieres critiques."
     ],
-    "Developpement & Code": [
+    "Développement & Code": [
         "Donne-moi une structure propre et modulaire pour un projet Python professionnel.",
         "Optimise un algorithme Python pour reduire la complexite temporelle.",
-        "Concois une architecture REST API scalable avec FastAPI.",
-        "Propose un schema de base de donnees PostgreSQL pour un systeme multi-tenant.",
-        "Redige un script de CI/CD complet avec GitHub Actions.",
-        "Analyse et refactore ce bloc de code pour ameliorer la lisibilite.",
-        "Concois un microservice en Go haute performance.",
-        "Redige des tests unitaires complets avec Pytest pour un module critique."
+        "Conçois une architecture REST API scalable avec FastAPI."
     ],
     "Entrepreneuriat & SaaS": [
         "Propose une idee de micro-SaaS B2B a fort potentiel avec un budget reduit.",
         "Dresse un plan d'acquisition client cible pour un outil SaaS de niche.",
-        "Redige le Pitch Deck complet de 10 slides pour presenter un projet IA.",
-        "Calcule et structure les metriques cles (LTV, CAC, MRR, Churn) d'un SaaS.",
-        "Propose une strategie de pricing optimale."
+        "Redige le Pitch Deck complet de 10 slides pour presenter un projet IA."
     ]
 }
 
@@ -111,61 +84,56 @@ if "session_active" not in st.session_state:
 quick_action = None
 
 with st.sidebar:
-    if os.path.exists("Gemini_Generated_Image_tuss9ltuss9ltuss.png"):
-        st.image("Gemini_Generated_Image_tuss9ltuss9ltuss.png", width=100) # Logo agrandi dans la sidebar
+    st.image(IMG_LOGO, width=120)
     
-    st.markdown("### MULTI-SESSIONS")
-    if st.button("Nouvelle discussion"):
+    icon_sessions = custom_icon(IMG_SESSIONS)
+    st.markdown(f"### {icon_sessions} MULTI-SESSIONS", unsafe_allow_html=True)
+    
+    if st.button("➕ Nouvelle discussion"):
         new_name = f"Discussion {len(st.session_state['sessions']) + 1}"
         st.session_state["sessions"][new_name] = []
         st.session_state["session_active"] = new_name
         st.rerun()
 
-    session_choisie = st.selectbox("Sessions enregistrees :", list(st.session_state["sessions"].keys()), index=list(st.session_state["sessions"].keys()).index(st.session_state["session_active"]))
+    session_choisie = st.selectbox("Sessions enregistrées :", list(st.session_state["sessions"].keys()), index=list(st.session_state["sessions"].keys()).index(st.session_state["session_active"]))
     if session_choisie != st.session_state["session_active"]:
         st.session_state["session_active"] = session_choisie
         st.rerun()
 
     st.markdown("---")
     
-    # HORLOGE TEMPS RÉEL SYNCHRONISÉE (JAVASCRIPT)
-    st.markdown("### HORLOGE LOCALE")
+    icon_clock = custom_icon(IMG_CLOCK)
+    st.markdown(f"### {icon_clock} HORLOGE LOCALE", unsafe_allow_html=True)
     st.markdown("""
-        <div style="font-size: 1.25em; font-weight: bold; color: #00ffcc; background: #161b22; padding: 8px; border-radius: 6px; text-align: center;">
-            <span id="live-clock">Chargement...</span>
+        <div style="font-size: 1.2em; font-weight: bold; color: #00ffcc; background: #161b22; padding: 8px; border-radius: 6px; text-align: center;">
+            <span id="live-clock">--:--:--</span>
         </div>
         <script>
-        function updateLiveClock() {
+        function updateClock() {
             const now = new Date();
             document.getElementById('live-clock').innerText = now.toLocaleTimeString();
         }
-        setInterval(updateLiveClock, 1000);
-        updateLiveClock();
+        updateClock();
+        setInterval(updateClock, 1000);
         </script>
     """, unsafe_allow_html=True)
 
     st.markdown("---")
-    st.markdown("### MATRICE DE COMMANDES")
+    icon_code = custom_icon(IMG_CODE)
+    st.markdown(f"### {icon_code} MATRICE DE COMMANDES", unsafe_allow_html=True)
     theme_choisi = st.selectbox("Domaine :", list(MATRICE_PROMPTS.keys()))
     prompt_selectionne = st.selectbox("Commande :", MATRICE_PROMPTS[theme_choisi])
     
-    if st.button("Injecter le prompt"):
+    if st.button("🚀 Injecter le prompt"):
         quick_action = prompt_selectionne
 
     st.markdown("---")
-    
-    # VRAI GUIDE D'UTILISATION ET DE MODIFICATION
-    with st.expander("VRAI GUIDE D'UTILISATION"):
+    icon_guide = custom_icon(IMG_GUIDE)
+    with st.expander("📖 GUIDE VIVANT AEGIS-CORE"):
         st.markdown("""
-        **1. Comment utiliser AEGIS-CORE :**
-        * Choisissez un domaine dans le menu déroulant de la matrice.
-        * Sélectionnez une directive prête à l'emploi ou tapez directement votre consigne dans la zone de texte en bas.
-        * Utilisez le panneau multi-sessions pour organiser vos projets par discussion.
-        
-        **2. Comment faire des modifications :**
-        * **Modifier le code source :** Éditez directement le fichier `app.py` sur votre dépôt GitHub (`cuirstep/aegis-core`).
-        * **Ajouter des prompts :** Modifiez le dictionnaire `MATRICE_PROMPTS` dans le code python pour ajouter vos propres thèmes et questions.
-        * **Modifier le comportement d'AEGIS :** Ajustez le texte de la variable `SYSTEM_PROMPT` pour changer ses règles de base.
+        **🛡️ [1. IDENTITÉ]** AEGIS-CORE est votre intelligence souveraine d'élite.
+        **⚡ [2. UTILISATION]** Choisissez un domaine dans la matrice et injectez votre directive.
+        **🛠️ [3. MODIFICATION]** Modifiez `MATRICE_PROMPTS` dans `app.py` pour ajuster vos commandes.
         """)
 
 # --- SYSTEM PROMPT ---
@@ -178,10 +146,7 @@ SYSTEM_PROMPT = (
 # --- INTERFACE PRINCIPALE ---
 col_logo, col_title = st.columns([0.12, 0.88])
 with col_logo:
-    if os.path.exists("Gemini_Generated_Image_tuss9ltuss9ltuss.png"):
-        st.image("Gemini_Generated_Image_tuss9ltuss9ltuss.png", width=75) # Logo agrandi dans le header
-    else:
-        st.markdown("🛡️")
+    st.image(IMG_LOGO, width=85)
 with col_title:
     st.markdown(f"### AEGIS-CORE // {st.session_state['session_active'].upper()}")
     st.caption(f"Domaine actif : **{theme_choisi}**")
@@ -203,7 +168,7 @@ if messages_actuels:
             break
             
     if dernier_index_user != -1:
-        with st.expander("Modifier votre dernière directive"):
+        with st.expander("✏️ Modifier votre dernière directive"):
             nouveau_texte = st.text_input("Ajustez votre consigne :", value=messages_actuels[dernier_index_user]["content"], key=f"edit_{st.session_state['session_active']}")
             if st.button("Mettre à jour et relancer", key=f"btn_edit_{st.session_state['session_active']}"):
                 messages_actuels[dernier_index_user]["content"] = nouveau_texte
@@ -271,7 +236,7 @@ if prompt:
                     pass
 
         if not succes:
-            reponse_finale = "Erreur de reseau : Les canaux distants ne repondent pas."
+            reponse_finale = "❌ Erreur de réseau : Les canaux distants ne répondent pas."
             st.markdown(reponse_finale)
 
         messages_actuels.append({"role": "assistant", "content": reponse_finale})
