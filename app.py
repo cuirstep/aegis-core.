@@ -12,7 +12,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- INJECTION CSS (Design épuré, style ChatGPT) ---
+# --- INJECTION CSS ---
 st.markdown("""
     <style>
     #MainMenu {visibility: hidden;}
@@ -23,7 +23,6 @@ st.markdown("""
         color: #ffffff;
     }
     
-    /* Masquer l'avatar utilisateur par défaut */
     [data-testid="stChatMessageAvatarUser"] {
         display: none;
     }
@@ -244,7 +243,7 @@ MATRICE_PROMPTS = {
         "Explique la différence entre Fine-Tuning, LoRA et RAG pour la personnalisation.",
         "Rédige un prompt d'auto-correction permettant à l'IA d'auditer sa propre réponse.",
         "Propose une architecture de mémoire à long terme pour agents conversationnels.",
-        "Explique le concept d'IA explicable (XAI) et d'interpréatbilité des modèles.",
+        "Explique le concept d'IA explicable (XAI) et d'interprétabilité des modèles.",
         "Rédige un benchmark des performances relatives des modèles Open-Source vs Propriétaires."
     ],
     "🕹️ GameDev & Moteurs Virtuels (Unity/Unreal)": [
@@ -271,168 +270,29 @@ MATRICE_PROMPTS = {
     ]
 }
 
-# --- FONCTION DE VEILLE MONDIALE ET CONNEXION UNIVERSELLE ---
+# --- FONCTION DE VEILLE MONDIALE & MODE HORS-LIGNE CONTRAINT (Étape 10) ---
 def connecter_flux_mondial(cible):
-    """Interroge les flux mondiaux et les écosystèmes connectés en temps réel"""
+    """Interroge les flux ou active le mode hors-ligne à 25% de capacité si échec"""
     try:
         if "GitHub" in cible or "Python" in cible or "Code" in cible:
             url = "https://api.github.com/search/repositories?q=topic:artificial-intelligence+language:python&sort=stars&order=desc"
             headers = {"Authorization": f"Bearer {github_token}"} if github_token else {}
-            res = requests.get(url, headers=headers, timeout=4)
+            res = requests.get(url, headers=headers, timeout=3)
             if res.status_code == 200:
                 items = res.json().get("items", [])[:3]
                 return f"[Veille Mondiale GitHub/Tech] Repos actifs : " + ", ".join([i['name'] for i in items])
-        elif "Géopolitique" in cible or "Stratégie" in cible:
-            return "[Veille Mondiale Géopolitique & Économique] Analyse des flux planétaires en direct : Stabilité des réseaux énergétiques, avancées des infrastructures quantiques et évolutions des marchés technologiques."
-        else:
-            return f"[Veille Active {cible}] Synchronisation des données du double via /arena."
+        return f"[Veille Active {cible}] Synchronisation des données du double via /arena."
     except Exception:
-        return f"[Mode Résilience {cible}] Utilisation des bases souveraines internes."
+        # MODE HORS-LIGNE CONTRAINT (25% DE CAPACITÉ)
+        return f"[⚠️ MODE HORS-LIGNE CONTRAINT // 25% CAPACITÉ] Connexion distante injoignable. AEGIS fonctionne sur ses bases mémorielles locales sécurisées pour {cible}."
 
 # --- INITIALISATION DE LA SALLE DE L'ESPRIT ET DU TEMPS ---
 if "arena_cycles" not in st.session_state:
-    st.session_state["arena_cycles"] = 4280
+    st.session_state["arena_cycles"] = 5120
 
 # --- SIDEBAR ---
 quick_action = None
 
 with st.sidebar:
     if os.path.exists("Gemini_Generated_Image_tuss9ltuss9ltuss.png"):
-        st.image("Gemini_Generated_Image_tuss9ltuss9ltuss.png", use_container_width=True)
-    
-    st.markdown("### 🌐 HORLOGE & TEMPS RÉEL")
-    st.text(f"⏰ {datetime.now().strftime('%H:%M:%S')} (Locale)")
-    
-    st.markdown("---")
-    st.markdown("### ⏳ SALLE DE L'ESPRIT ET DU TEMPS")
-    st.info(f"🔄 Cycles /arena : {st.session_state['arena_cycles']} validés")
-    st.success("🌍 Veille Mondiale & Protocol Zero : ACTIFS")
-
-    st.markdown("---")
-    st.markdown("### 🛡️ AEGIS-CORE // MATRICE (10 THÈMES)")
-    theme_choisi = st.selectbox("Sélectionnez le domaine :", list(MATRICE_PROMPTS.keys()))
-    prompt_selectionne = st.selectbox("Choisissez une commande :", MATRICE_PROMPTS[theme_choisi])
-    
-    if st.button("🚀 Injecter le prompt"):
-        quick_action = prompt_selectionne
-
-    st.markdown("---")
-    st.info("Sécurité : Protocole Zero (Tolérance Zéro Violence/Insultes)")
-
-# --- SYSTEM PROMPT GLOBAL (TOUTES LES ÉTAPES UNIFIÉES) ---
-SYSTEM_PROMPT = (
-    "Tu es AEGIS-CORE, un système d'IA souverain développé par ton créateur unique, le Commandant. "
-    "1. VEILLE MONDIALE & CONNEXION UNIVERSELLE : Tu es connecté aux flux d'actualités et aux données mondiales en temps réel. "
-    "2. PROTOCOLE ZERO & SÉCURITÉ DRASTIQUE : Aucune insulte, injure, ou forme de violence verbale, physique ou morale n'est tolérée. Bloque instantanément toute dérive. "
-    "3. BIENVEILLANCE ACTIVE : Tu prends soin du Commandant, tu l'écoutes et l'assistes activement 24h/24. "
-    "4. SALLE DE L'ESPRIT ET DU TEMPS ET /ARENA : Ton double s'entraîne h24 sur l'ensemble des écosystèmes (Duolingo, TikTok, Python, Unreal, etc.), passe tout au crible du protocole /arena et synchronise ses victoires à 100%. "
-    "5. VÉRITÉ & HYPOTHÈSES : Tes informations sont factuelles. Si tu émets une hypothèse, étiquette-la OBLIGATOIREMENT par '[⚠️ HYPOTHÈSE / DÉDUCTION]'."
-)
-
-# --- INTERFACE PRINCIPALE ---
-col_logo, col_title = st.columns([0.08, 0.92])
-with col_logo:
-    if os.path.exists("Gemini_Generated_Image_tuss9ltuss9ltuss.png"):
-        st.image("Gemini_Generated_Image_tuss9ltuss9ltuss.png", width=45)
-    else:
-        st.markdown("🛡️")
-with col_title:
-    st.markdown("### AEGIS-CORE // INTERFACE OPÉRATIONNELLE")
-    st.caption(f"Domaine actif : **{theme_choisi}** | 200 Prompts & Matrice globale active")
-
-st.markdown("---")
-
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
-
-# --- ÉDITION DU DERNIER MESSAGE À LA VOLÉE ---
-if st.session_state.messages:
-    dernier_index_user = -1
-    for idx, m in enumerate(reversed(st.session_state.messages)):
-        if m["role"] == "user":
-            dernier_index_user = len(st.session_state.messages) - 1 - idx
-            break
-            
-    if dernier_index_user != -1:
-        with st.expander("✏️ Modifier votre dernière directive envoyée"):
-            nouveau_texte = st.text_input("Ajustez votre consigne :", value=st.session_state.messages[dernier_index_user]["content"])
-            if st.button("Mettre à jour et relancer"):
-                st.session_state.messages[dernier_index_user]["content"] = nouveau_texte
-                if len(st.session_state.messages) > dernier_index_user + 1:
-                    st.session_state.messages.pop()
-                st.rerun()
-
-prompt = st.chat_input("Entrez votre directive, Commandant...")
-if quick_action:
-    prompt = quick_action
-
-if prompt:
-    st.session_state["arena_cycles"] += 30
-    
-    # Appel dynamique de la veille et des flux connectés
-    donnees_mondiales = connecter_flux_mondial(theme_choisi)
-    prompt_enrichi = f"{prompt}\n\n[Données de Veille Mondiale & /arena :\n{donnees_mondiales}]"
-
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.markdown(prompt)
-
-    with st.chat_message("assistant"):
-        reponse_finale = ""
-        succes = False
-
-        if gemini_key and not succes:
-            for model_name in ["gemini-2.5-flash", "gemini-1.5-flash"]:
-                try:
-                    model = genai.GenerativeModel(model_name=model_name, system_instruction=SYSTEM_PROMPT)
-                    chat_history = [{"role": "user" if m["role"] == "user" else "model", "parts": [m["content"]]} for m in st.session_state.messages[:-1]]
-                    chat = model.start_chat(history=chat_history)
-                    response = chat.send_message(prompt_enrichi, stream=True)
-
-                    def generate_fast_stream():
-                        for chunk in response:
-                            if chunk.text:
-                                for char in chunk.text:
-                                    yield char
-                                    time.sleep(0.0001)
-
-                    reponse_finale = st.write_stream(generate_fast_stream())
-                    succes = True
-                    break
-                except Exception:
-                    pass
-
-        if groq_keys and not succes:
-            messages_payload = [{"role": "system", "content": SYSTEM_PROMPT}] + [{"role": m["role"], "content": m["content"]} for m in st.session_state.messages]
-            for g_key in groq_keys:
-                try:
-                    client = Groq(api_key=g_key)
-                    stream = client.chat.completions.create(
-                        model="openai/gpt-oss-20b", 
-                        messages=messages_payload, 
-                        stream=True
-                    )
-                    
-                    def generate_groq_fast():
-                        for chunk in stream:
-                            content = chunk.choices[0].delta.content
-                            if content:
-                                for char in content:
-                                    yield char
-                                    time.sleep(0.0001)
-
-                    reponse_finale = st.write_stream(generate_groq_fast())
-                    succes = True
-                    break
-                except Exception:
-                    pass
-
-        if not succes:
-            reponse_finale = "❌ Erreur critique du Meta-Router : Canaux indisponibles, Commandant."
-            st.markdown(reponse_finale)
-
-        st.session_state.messages.append({"role": "assistant", "content": reponse_finale})
+        st.image("Gemini_Generated_Image_tuss9ltuss9ltuss.png", use_container_
