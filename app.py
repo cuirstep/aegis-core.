@@ -8,7 +8,8 @@ import google.generativeai as genai
 
 st.set_page_config(
     page_title="AEGIS-CORE // OS", 
-    page_icon="🛡️", 
+    page_icon="Gemini_Generated_Image_tuss9ltuss9ltuss.png
+README.md", 
     layout="wide"
 )
 
