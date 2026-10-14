@@ -309,4 +309,27 @@ if prompt_input:
                 except Exception:
                     pass
 
-        if groq_keys and not
+  if groq_keys and not succes:
+            messages_payload = [{"role": "system", "content": SYSTEM_PROMPT}] + [{"role": m["role"], "content": m["content"]} for m in messages_actuels]
+            for g_key in groq_keys:
+                try:
+                    client = Groq(api_key=g_key)
+                    stream = client.chat.completions.create(
+                        model="openai/gpt-oss-20b", 
+                        messages=messages_payload, 
+                        stream=True
+                    )
+                    
+                    def generate_groq_fast():
+                        for chunk in stream:
+                            content = chunk.choices[0].delta.content
+                            if content:
+                                for char in content:
+                                    yield char
+                                    time.sleep(0.0001)
+
+                    reponse_finale = st.write_stream(generate_groq_fast())
+                    succes = True
+                    break
+                except Exception:
+                    pass
