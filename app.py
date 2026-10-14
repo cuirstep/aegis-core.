@@ -159,4 +159,4 @@ with st.sidebar:
         st.rerun()
 
     st.markdown("---")
-    icon_code = custom_icon("assets
+  icon_code = custom_icon("assets/aegis_code.png")
