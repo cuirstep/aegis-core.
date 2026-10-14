@@ -1,6 +1,5 @@
 import streamlit as st
 import os
-import time
 import base64
 from groq import Groq
 import google.generativeai as genai
@@ -11,11 +10,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- GESTION DE L'ANIMATION BÊTA EN SESSION ---
-if "intro_affichee" not in st.session_state:
-    st.session_state["intro_affichee"] = False
-
-# --- INJECTION CSS & ANIMATION ÉPHÉMÈRE ---
+# --- INJECTION CSS & ANIMATION BRUME (GÉRÉE EN PUR CSS/JS SANS BLOQUER) ---
 st.markdown("""
     <style>
     #MainMenu {visibility: hidden;}
@@ -29,60 +24,54 @@ st.markdown("""
     [data-testid="stChatMessageAvatarUser"], [data-testid="stChatMessageAvatarAssistant"] {
         display: none !important;
     }
-    </style>
-""", unsafe_allow_html=True)
-
-# Lancer l'animation uniquement la première fois
-if not st.session_state["intro_affichee"]:
-    st.markdown("""
-        <style>
-        @keyframes brumeIntro {
-            0% { opacity: 0; filter: blur(20px); transform: scale(1.1); }
-            50% { opacity: 1; filter: blur(2px); transform: scale(1); }
-            100% { opacity: 0; filter: blur(10px); transform: scale(0.95); }
-        }
-
-        .intro-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background-color: #000000;
-            color: #ffffff;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 999999;
-            animation: brumeIntro 2.8s ease-in-out forwards;
-            font-family: monospace;
-            letter-spacing: 8px;
-            font-size: 3em;
-            font-weight: bold;
-        }
-        
-        .intro-sub {
-            font-size: 0.35em;
-            letter-spacing: 4px;
-            color: #888888;
-            margin-top: 10px;
-        }
-        </style>
-
-        <div class="intro-overlay">
-            AEGIS-CORE
-            <div class="intro-sub">// PROTOCOLE BÊTA INITIALISÉ //</div>
-        </div>
-        
-        <audio autoplay style="display:none;">
-            <source src="https://www.myinstants.com/media/sounds/metal-gear-solid-alert-sound.mp3" type="audio/mpeg">
-        </audio>
-    """, unsafe_allow_html=True)
     
-    time.sleep(2.8)
-    st.session_state["intro_affichee"] = True
-    st.rerun()
+    /* --- ANIMATION BRUME DISPARITION AUTOMATIQUE --- */
+    @keyframes brumeFadeOut {
+        0% { opacity: 1; filter: blur(0px); visibility: visible; }
+        75% { opacity: 1; filter: blur(3px); visibility: visible; }
+        100% { opacity: 0; filter: blur(15px); visibility: hidden; display: none; }
+    }
+
+    .intro-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: #000000;
+        color: #ffffff;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 999999;
+        pointer-events: none; /* Laisse passer les clics après l'animation */
+        animation: brumeFadeOut 2.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        font-family: monospace;
+        letter-spacing: 8px;
+        font-size: 3em;
+        font-weight: bold;
+    }
+    
+    .intro-sub {
+        font-size: 0.35em;
+        letter-spacing: 4px;
+        color: #888888;
+        margin-top: 10px;
+    }
+    </style>
+
+    <!-- ÉCRAN D'INTRODUCTION CINÉMATIQUE -->
+    <div class="intro-overlay">
+        AEGIS-CORE
+        <div class="intro-sub">// PROTOCOLE BÊTA INITIALISÉ //</div>
+    </div>
+    
+    <!-- AUDIO MILITAIRE COURT (3 SECONDES) -->
+    <audio autoplay style="display:none;">
+        <source src="https://www.myinstants.com/media/sounds/metal-gear-solid-alert-sound.mp3" type="audio/mpeg">
+    </audio>
+""", unsafe_allow_html=True)
 
 # --- FONCTIONS UTILITAIRES ---
 def get_base64_img(path):
@@ -114,7 +103,7 @@ if gemini_key:
     except Exception:
         pass
 
-   # --- MATRICE INTÉGRALE : 20 THÈMES X PROMPTS ---
+# --- MATRICE INTÉGRALE : 20 THÈMES ---
 MATRICE_PROMPTS = {
     "🎓 Pédagogie, Quiz & Résumés": [
         "Genere un Quiz interactif de 5 questions a choix multiples base sur notre derniere discussion.",
@@ -202,3 +191,122 @@ MATRICE_PROMPTS = {
         "Redige un rapport post-mortem suite a un incident de production."
     ]
 }
+
+# --- MULTI-SESSIONS ---
+if "sessions" not in st.session_state:
+    st.session_state["sessions"] = {"Discussion 1": []}
+if "session_active" not in st.session_state:
+    st.session_state["session_active"] = "Discussion 1"
+
+# --- SIDEBAR ---
+quick_action = None
+
+with st.sidebar:
+    if os.path.exists("assets/aegis_logo.png"):
+        st.image("assets/aegis_logo.png", width=120)
+    
+    icon_sessions = custom_icon("assets/aegis_sessions.png")
+    st.markdown(f"### {icon_sessions} MULTI-SESSIONS", unsafe_allow_html=True)
+    
+    if st.button("➕ Nouvelle discussion"):
+        new_name = f"Discussion {len(st.session_state['sessions']) + 1}"
+        st.session_state["sessions"][new_name] = []
+        st.session_state["session_active"] = new_name
+        st.rerun()
+
+    session_choisie = st.selectbox("Sessions enregistrées :", list(st.session_state["sessions"].keys()), index=list(st.session_state["sessions"].keys()).index(st.session_state["session_active"]))
+    if session_choisie != st.session_state["session_active"]:
+        st.session_state["session_active"] = session_choisie
+        st.rerun()
+
+    st.markdown("---")
+    icon_code = custom_icon("assets/aegis_code.png")
+    st.markdown(f"### {icon_code} MATRICE DE COMMANDES", unsafe_allow_html=True)
+    theme_choisi = st.selectbox("Domaine :", list(MATRICE_PROMPTS.keys()))
+    prompt_selectionne = st.selectbox("Commande :", MATRICE_PROMPTS[theme_choisi])
+    
+    if st.button("🚀 Injecter le prompt"):
+        quick_action = prompt_selectionne
+
+# --- SYSTEM PROMPT ---
+SYSTEM_PROMPT = (
+    "Tu es AEGIS-CORE (Version Bêta), un systeme d'IA souverain developpe par le Commandant. "
+    "Tu es ultra-performant, direct et rigoureux. "
+    "Si tu emets une hypothese ou une deduction, étiquette-la OBLIGATOIREMENT par '[HYPOTHESE / DEDUCTION]'."
+)
+
+# --- INTERFACE PRINCIPALE ---
+col_logo, col_title = st.columns([0.12, 0.88])
+with col_logo:
+    if os.path.exists("assets/aegis_logo.png"):
+        st.image("assets/aegis_logo.png", width=80)
+    else:
+        st.markdown("🛡️")
+with col_title:
+    st.markdown(f"### AEGIS-CORE // {st.session_state['session_active'].upper()} (BÊTA)")
+    st.caption(f"Domaine actif : **{theme_choisi}**")
+
+st.markdown("---")
+
+messages_actuels = st.session_state["sessions"][st.session_state["session_active"]]
+
+for message in messages_actuels:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+# --- ÉDITION ROBUSTE DU DERNIER MESSAGE ---
+prompt_a_traiter = None
+
+if messages_actuels:
+    dernier_index_user = -1
+    for idx, m in enumerate(reversed(messages_actuels)):
+        if m["role"] == "user":
+            dernier_index_user = len(messages_actuels) - 1 - idx
+            break
+            
+    if dernier_index_user != -1:
+        with st.expander("✏️ Modifier votre dernière directive"):
+            nouveau_texte = st.text_input("Ajustez votre consigne :", value=messages_actuels[dernier_index_user]["content"], key=f"edit_txt_{st.session_state['session_active']}")
+            if st.button("Mettre à jour et relancer", key=f"btn_edit_run_{st.session_state['session_active']}"):
+                st.session_state["sessions"][st.session_state["session_active"]] = messages_actuels[:dernier_index_user]
+                prompt_a_traiter = nouveau_texte
+                st.rerun()
+
+# Récupération de la saisie normale ou du quick action ou de l'édition
+prompt_input = st.chat_input("Entrez votre directive, Commandant...")
+if quick_action:
+    prompt_input = quick_action
+if prompt_a_traiter:
+    prompt_input = prompt_a_traiter
+
+if prompt_input:
+    messages_actuels.append({"role": "user", "content": prompt_input})
+    with st.chat_message("user"):
+        st.markdown(prompt_input)
+
+    with st.chat_message("assistant"):
+        reponse_finale = ""
+        succes = False
+
+        if gemini_key and not succes:
+            for model_name in ["gemini-2.5-flash", "gemini-1.5-flash"]:
+                try:
+                    model = genai.GenerativeModel(model_name=model_name, system_instruction=SYSTEM_PROMPT)
+                    chat_history = [{"role": "user" if m["role"] == "user" else "model", "parts": [m["content"]]} for m in messages_actuels[:-1]]
+                    chat = model.start_chat(history=chat_history)
+                    response = chat.send_message(prompt_input, stream=True)
+
+                    def generate_fast_stream():
+                        for chunk in response:
+                            if chunk.text:
+                                for char in chunk.text:
+                                    yield char
+                                    time.sleep(0.0001)
+
+                    reponse_finale = st.write_stream(generate_fast_stream())
+                    succes = True
+                    break
+                except Exception:
+                    pass
+
+        if groq_keys and not
