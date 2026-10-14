@@ -12,7 +12,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- INJECTION CSS (DESIGN ÉPURÉ NOIR & BLANC, ANIMATION BRUME & AUDIO) ---
+# --- INJECTION CSS (ANIMATION BRUME CORRIGÉE + DÉBLOCAGE INTERFACE) ---
 st.markdown("""
     <style>
     #MainMenu {visibility: hidden;}
@@ -27,11 +27,12 @@ st.markdown("""
         display: none !important;
     }
     
-    /* --- ANIMATION BRUME & INTRO AEGIS (3 SECONDES) --- */
+    /* --- ANIMATION BRUME SANS BLOCAGE (pointer-events: none + visibility: hidden) --- */
     @keyframes brumeIntro {
-        0% { opacity: 0; filter: blur(20px); transform: scale(1.1); }
-        50% { opacity: 1; filter: blur(5px); transform: scale(1.02); }
-        100% { opacity: 0; filter: blur(0px); transform: scale(1); display: none; }
+        0% { opacity: 0; filter: blur(20px); transform: scale(1.1); visibility: visible; }
+        30% { opacity: 1; filter: blur(4px); transform: scale(1.02); visibility: visible; }
+        85% { opacity: 1; filter: blur(1px); transform: scale(1); visibility: visible; }
+        100% { opacity: 0; filter: blur(15px); transform: scale(0.98); visibility: hidden; }
     }
 
     .intro-overlay {
@@ -46,19 +47,20 @@ st.markdown("""
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        z-index: 99999;
-        animation: brumeIntro 3.2s ease-out forwards;
+        z-index: 999999;
+        pointer-events: none; /* PERMET DE CLIQUER À TRAVERS L'INTERFACE */
+        animation: brumeIntro 3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
         font-family: monospace;
-        letter-spacing: 8px;
-        font-size: 3em;
+        letter-spacing: 10px;
+        font-size: 3.2em;
         font-weight: bold;
     }
     
     .intro-sub {
         font-size: 0.35em;
-        letter-spacing: 4px;
+        letter-spacing: 5px;
         color: #888888;
-        margin-top: 10px;
+        margin-top: 12px;
     }
     </style>
 
@@ -68,7 +70,7 @@ st.markdown("""
         <div class="intro-sub">// PROTOCOLE BÊTA INITIALISÉ //</div>
     </div>
     
-    <!-- SYNTHÈSE VOCALE / AUDIO MILITAIRE COURT (3 SECONDES) -->
+    <!-- AUDIO MILITAIRE IMMERSIF (3 SECONDES) -->
     <audio autoplay style="display:none;">
         <source src="https://www.myinstants.com/media/sounds/metal-gear-solid-alert-sound.mp3" type="audio/mpeg">
     </audio>
@@ -135,7 +137,7 @@ if "sessions" not in st.session_state:
 if "session_active" not in st.session_state:
     st.session_state["session_active"] = "Discussion 1"
 
-# --- SIDEBAR (ÉPURÉE SANS HORLOGE NI GUIDE) ---
+# --- SIDEBAR ---
 quick_action = None
 
 with st.sidebar:
@@ -157,12 +159,4 @@ with st.sidebar:
         st.rerun()
 
     st.markdown("---")
-    icon_code = custom_icon("assets/aegis_code.png")
-    st.markdown(f"### {icon_code} MATRICE DE COMMANDES", unsafe_allow_html=True)
-    theme_choisi = st.selectbox("Domaine :", list(MATRICE_PROMPTS.keys()))
-    prompt_selectionne = st.selectbox("Commande :", MATRICE_PROMPTS[theme_choisi])
-    
-    if st.button("🚀 Injecter le prompt"):
-        quick_action = prompt_selectionne
-
-# --- SYSTEM
+    icon_code = custom_icon("assets
