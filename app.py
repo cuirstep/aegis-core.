@@ -12,7 +12,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- INJECTION CSS, ANIMATION D'INTRO & VOIX MILITAIRE ---
+# --- INJECTION CSS & ANIMATION DE BRUME (BÊTA INTRO) ---
 st.markdown("""
     <style>
     #MainMenu {visibility: hidden;}
@@ -23,73 +23,70 @@ st.markdown("""
         display: none !important;
     }
 
-    /* ANIMATION D'INTRODUCTION PLEIN ÉCRAN (Gros plan / Déroulement) */
-    @keyframes aegisIntro {
-        0% { opacity: 0; transform: scale(1.5); filter: blur(10px); }
-        50% { opacity: 1; transform: scale(1); filter: blur(0px); }
-        80% { opacity: 1; transform: scale(1); }
-        100% { opacity: 0; display: none; visibility: hidden; }
+    /* Animation d'introduction style brume / cyber-déroulé */
+    @keyframes aegisFadeIn {
+        0% { opacity: 0; filter: blur(20px); transform: scale(0.95); }
+        50% { opacity: 0.5; filter: blur(10px); }
+        100% { opacity: 1; filter: blur(0px); transform: scale(1); }
     }
 
-    .intro-overlay {
+    .aegis-intro-banner {
         position: fixed;
         top: 0;
         left: 0;
         width: 100vw;
         height: 100vh;
-        background-color: #080a0f;
+        background: radial-gradient(circle, #161b22 0%, #0e1117 100%);
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        z-index: 999999;
-        animation: aegisIntro 3.5s ease-in-out forwards;
+        z-index: 99999;
+        animation: aegisFadeIn 2.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
-    .intro-title {
-        font-family: 'Courier New', monospace;
-        font-size: 3.5rem;
-        font-weight: bold;
+    .aegis-title-glow {
+        font-size: 4rem;
+        font-weight: 900;
+        letter-spacing: 0.2em;
         color: #ff2a2a;
-        letter-spacing: 0.5rem;
-        text-shadow: 0 0 20px rgba(255, 42, 42, 0.8);
-        border-right: 4px solid #00ffcc;
-        white-space: nowrap;
-        animation: typing 2s steps(10, end), blink-caret 0.75s step-end infinite;
+        text-shadow: 0 0 20px rgba(255, 42, 42, 0.6), 0 0 40px rgba(0, 255, 204, 0.3);
+        margin-bottom: 10px;
     }
 
-    @keyframes typing {
-        from { width: 0 }
-        to { width: 100% }
-    }
-    @keyframes blink-caret {
-        from, to { border-color: transparent }
-        50% { border-color: #00ffcc; }
+    .aegis-subtitle {
+        font-size: 1.2rem;
+        color: #00ffcc;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
     }
     </style>
 
-    <!-- HTML DE L'ANIMATION D'INTRO & SYNTHÈSE VOCALE JS -->
-    <div class="intro-overlay">
-        <div class="intro-title">AEGIS-CORE // BETA</div>
-        <p style="color: #00ffcc; font-family: monospace; margin-top: 15px; letter-spacing: 2px;">INITIALISATION DU PROTOCOLE SOUVERAIN...</p>
+    <!-- Écran d'animation d'introduction de la Bêta -->
+    <div id="intro-banner" class="aegis-intro-banner">
+        <div class="aegis-title-glow">AEGIS-CORE</div>
+        <div class="aegis-subtitle">BÊTA OPÉRATIONNELLE // PROTOCOLE MILITAIRE</div>
     </div>
 
     <script>
-    // Synthèse vocale militaire au chargement
-    function speakAegisStartup() {
+    // Disparition de l'animation après 2.5 secondes + Synthèse vocale d'accueil
+    setTimeout(function() {
+        const banner = document.getElementById('intro-banner');
+        if (banner) {
+            banner.style.transition = 'opacity 0.8s ease';
+            banner.style.opacity = '0';
+            setTimeout(() => banner.remove(), 800);
+        }
+        
+        // Synthèse vocale militaire d'activation
         if ('speechSynthesis' in window) {
-            const utterance = new SpeechSynthesisUtterance("Système Aegis Core initialisé. Prêt au combat, Commandant.");
-            utterance.rate = 1.0;
-            utterance.pitch = 0.8; // Ton plus grave/militaire
+            const utterance = new SpeechSynthesisUtterance("Système Aegis Core en ligne. Prêt pour les directives, Commandant.");
+            utterance.rate = 0.9;
+            utterance.pitch = 0.8; // Voix plus grave / militaire
             utterance.lang = 'fr-FR';
             window.speechSynthesis.speak(utterance);
         }
-    }
-    // Exécution unique au chargement
-    if (!window.aegisLoaded) {
-        window.aegisLoaded = true;
-        setTimeout(speakAegisStartup, 1000);
-    }
+    }, 2500);
     </script>
 """, unsafe_allow_html=True)
 
@@ -123,7 +120,7 @@ if gemini_key:
     except Exception:
         pass
 
-# --- MATRICE PROMPTS (20 THÈMES) ---
+# --- MATRICE PROMPTS ---
 MATRICE_PROMPTS = {
     "Pédagogie, Quiz & Résumés": [
         "Genere un Quiz interactif de 5 questions a choix multiples base sur notre derniere discussion.",
@@ -133,18 +130,15 @@ MATRICE_PROMPTS = {
     ],
     "Stratégie & Géopolitique": [
         "Analyse les equilibres geopolitiques actuels avec une precision tactique.",
-        "Evalue les risques strategiques d'un conflit technologique global.",
-        "Dresse une cartographie des dependances en matieres premieres critiques."
+        "Evalue les risques strategiques d'un conflit technologique global."
     ],
     "Développement & Code": [
         "Donne-moi une structure propre et modulaire pour un projet Python professionnel.",
-        "Optimise un algorithme Python pour reduire la complexite temporelle.",
-        "Concois une architecture REST API scalable avec FastAPI."
+        "Optimise un algorithme Python pour reduire la complexite temporelle."
     ],
     "Entrepreneuriat & SaaS": [
         "Propose une idee de micro-SaaS B2B a fort potentiel avec un budget reduit.",
-        "Dresse un plan d'acquisition client cible pour un outil SaaS de niche.",
-        "Redige le Pitch Deck complet de 10 slides pour presenter un projet IA."
+        "Dresse un plan d'acquisition client cible pour un outil SaaS de niche."
     ]
 }
 
@@ -154,7 +148,7 @@ if "sessions" not in st.session_state:
 if "session_active" not in st.session_state:
     st.session_state["session_active"] = "Discussion 1"
 
-# --- SIDEBAR ÉPURÉE (SANS HORLOGE NI GUIDE) ---
+# --- SIDEBAR ÉPURÉE (BÊTA) ---
 quick_action = None
 
 with st.sidebar:
@@ -187,7 +181,7 @@ with st.sidebar:
 # --- SYSTEM PROMPT ---
 SYSTEM_PROMPT = (
     "Tu es AEGIS-CORE (Version Bêta), un systeme d'IA souverain developpe par le Commandant. "
-    "Tu reponds de maniere ultra-directe, tactique et militaire. "
+    "Tu es ultra-performant, direct, militaire et rigoureux. "
     "Si tu emets une hypothese ou une deduction, étiquette-la OBLIGATOIREMENT par '[HYPOTHESE / DEDUCTION]'."
 )
 
@@ -199,7 +193,7 @@ with col_logo:
     else:
         st.markdown("🛡️")
 with col_title:
-    st.markdown(f"### AEGIS-CORE // {st.session_state['session_active'].upper()} (BETA)")
+    st.markdown(f"### AEGIS-CORE // {st.session_state['session_active'].upper()} [BETA]")
     st.caption(f"Domaine actif : **{theme_choisi}**")
 
 st.markdown("---")
@@ -290,12 +284,12 @@ if prompt:
             reponse_finale = "❌ Erreur de réseau : Les canaux distants ne répondent pas."
             st.markdown(reponse_finale)
 
-        # SYNTHÈSE VOCALE SUR LA RÉPONSE DE L'ASSISTANT
+        # SYNTHÈSE VOCALE AUTOMATIQUE DE LA RÉPONSE
         st.markdown(f"""
             <script>
             if ('speechSynthesis' in window) {{
-                const utterance = new SpeechSynthesisUtterance("Transmission reçue, Commandant.");
-                utterance.rate = 1.0;
+                const utterance = new SpeechSynthesisUtterance({repr(reponse_finale[:200])});
+                utterance.rate = 0.95;
                 utterance.pitch = 0.8;
                 utterance.lang = 'fr-FR';
                 window.speechSynthesis.speak(utterance);
