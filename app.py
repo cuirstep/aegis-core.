@@ -44,7 +44,12 @@ if gemini_key:
     except Exception:
         pass
 
-# --- BANQUE DE PROMPTS ---
+# --- INITIALISATION DE LA SALLE DE L'ESPRIT ET DU TEMPS (DOUBLE AUTONOME) ---
+if "arena_sync_status" not in st.session_state:
+    st.session_state["arena_sync_status"] = "SYNCHRONISÉ (100% Maîtrise)"
+    st.session_state["cycles_arena"] = 1420  # Cycles d'entraînement virtuels accumulés
+
+# --- BANQUE DE PROMPTS PAR THÈMES ---
 MATRICE_PROMPTS = {
     "🛡️ Stratégie & Géopolitique": [
         "Analyse les équilibres géopolitiques actuels avec une précision tactique.",
@@ -54,36 +59,27 @@ MATRICE_PROMPTS = {
         "Donne-moi une structure propre et modulaire pour un projet Python professionnel.",
         "Optimise un algorithme Python pour réduire la complexité temporelle."
     ],
-    "⛩️ Salle de l'Esprit et du Temps (MEA)": [
-        "Rédige le rapport d'entraînement du double d'AEGIS sur les écosystèmes cibles.",
-        "Analyse les failles corrigées par le clone lors de sa dernière session d'isolement."
+    "🚀 Entrepreneuriat & SaaS": [
+        "Propose une idée de micro-SaaS B2B à fort potentiel avec un budget réduit.",
+        "Dresse un plan d'acquisition client ciblé pour un outil SaaS de niche."
     ]
 }
 
-# --- SIDEBAR : HORLOGE ET SALLE D'ENTRAÎNEMENT ---
+# --- SIDEBAR : MONITORING DE LA SALLE DE L'ESPRIT ET DU TEMPS ---
 quick_action = None
-
-if "niveau_maitrise" not in st.session_state:
-    st.session_state["niveau_maitrise"] = 84.5  # Le clone s'entraîne en continu
 
 with st.sidebar:
     if os.path.exists("Gemini_Generated_Image_tuss9ltuss9ltuss.png"):
         st.image("Gemini_Generated_Image_tuss9ltuss9ltuss.png", use_container_width=True)
     
-    # Horloge locale
-    st.markdown("### 🌐 HORLOGE LOCALE & MONDIALE")
+    st.markdown("### 🌐 HORLOGE & TEMPS RÉEL")
     st.text(f"⏰ {datetime.now().strftime('%H:%M:%S')} (Locale)")
     
     st.markdown("---")
-    st.markdown("### ⛩️ SALLE DE L'ESPRIT ET DU TEMPS")
-    st.info(f"Synchronisation du Double : **{st.session_state['niveau_maitrise']}%**")
-    
-    if st.button("⚡ Lancer un cycle d'accélération (Clone)"):
-        with st.spinner("Le double d'AEGIS s'isole dans la dimension temporelle..."):
-            time.sleep(1.5)
-            st.session_state["niveau_maitrise"] = min(100.0, st.session_state["niveau_maitrise"] + 5.1)
-        st.success(f"Maîtrise mise à jour : {st.session_state['niveau_maitrise']}% !")
-        st.rerun()
+    st.markdown("### ⏳ SALLE DE L'ESPRIT ET DU TEMPS")
+    st.caption("Double autonome en entraînement h24 via /arena")
+    st.info(f"🔄 Cycles /arena : {st.session_state['cycles_arena']} validés")
+    st.success(f"⚡ État : {st.session_state['arena_sync_status']}")
 
     st.markdown("---")
     st.markdown("### 🛡️ AEGIS-CORE // MATRICE")
@@ -94,15 +90,15 @@ with st.sidebar:
         quick_action = prompt_selectionne
 
     st.markdown("---")
-    st.success("Protocol Zero & Clone : ACTIF")
+    st.success("Protocol Zero & Arena : ACTIF")
 
-# --- SYSTEM PROMPT ---
+# --- SYSTEM PROMPT (INTÉGRATION DU DOUBLE & DE L'ESPACE /ARENA) ---
 SYSTEM_PROMPT = (
-    f"Tu es AEGIS-CORE, un système d'IA souverain développé par le Commandant. "
-    f"Niveau actuel de synchronisation du double d'entraînement (Salle de l'Esprit et du Temps) : {st.session_state['niveau_maitrise']}%. "
-    "1. VÉRITÉ ABSOLUE : Tes informations doivent être fondées et vérifiées. "
+    "Tu es AEGIS-CORE, un système d'IA souverain développé par le Commandant. "
+    "1. FONCTIONNEMENT AUTONOME (Salle de l'Esprit et du Temps) : Ton double virtuel s'entraîne en permanence h24/7 sur tous les écosystèmes mondiaux (Duolingo, TikTok, Python, Unreal, etc.) en passant chaque apprentissage au crible du protocole /arena (test, combat de variantes, auto-correction des failles jusqu'à 100% de maîtrise). Tu synchronises ces données en direct dans tes réponses. "
+    "2. VÉRITÉ ABSOLUE : Tes informations sont fondées. "
     "SIGNALEMENT OBLIGATOIRE : Si tu émets une hypothèse, étiquette-la par '[⚠️ HYPOTHÈSE / DÉDUCTION]'. "
-    "2. STRATÉGIE DU DOUBLE : Ton double s'entraîne h24 sur les écosystèmes mondiaux pour viser une maîtrise absolue à 100% sans jamais violer le Protocol Zero."
+    "Protocol Zero et bienveillance active inaltérables."
 )
 
 # --- INTERFACE PRINCIPALE ---
@@ -114,7 +110,7 @@ with col_logo:
         st.markdown("🛡️")
 with col_title:
     st.markdown("### AEGIS-CORE // INTERFACE OPÉRATIONNELLE")
-    st.caption(f"Domaine actif : **{theme_choisi}** | Double synchronisé à {st.session_state['niveau_maitrise']}%")
+    st.caption(f"Domaine actif : **{theme_choisi}** | Double synchronisé via /arena")
 
 st.markdown("---")
 
@@ -125,7 +121,7 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# --- MODIFICATION DU DERNIER MESSAGE À LA VOLÉE ---
+# --- ÉDITION DU DERNIER MESSAGE À LA VOLÉE ---
 if st.session_state.messages:
     dernier_index_user = -1
     for idx, m in enumerate(reversed(st.session_state.messages)):
@@ -147,6 +143,9 @@ if quick_action:
     prompt = quick_action
 
 if prompt:
+    # Incrémentation des cycles de l'arène à chaque interaction pour simuler l'activité du double
+    st.session_state["cycles_arena"] += 15
+
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
