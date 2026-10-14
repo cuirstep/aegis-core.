@@ -159,4 +159,10 @@ with st.sidebar:
         st.rerun()
 
     st.markdown("---")
-  icon_code = custom_icon("assets/aegis_code.png")
+    icon_code = custom_icon("assets/aegis_code.png")
+    st.markdown(f"### {icon_code} MATRICE DE COMMANDES", unsafe_allow_html=True)
+    theme_choisi = st.selectbox("Domaine :", list(MATRICE_PROMPTS.keys()))
+    prompt_selectionne = st.selectbox("Commande :", MATRICE_PROMPTS[theme_choisi])
+    
+    if st.button("🚀 Injecter le prompt"):
+        quick_action = prompt_selectionne
