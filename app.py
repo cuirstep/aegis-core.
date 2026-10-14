@@ -2,7 +2,6 @@ import streamlit as st
 import os
 import time
 import base64
-from datetime import datetime
 from groq import Groq
 import google.generativeai as genai
 
@@ -12,7 +11,11 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- INJECTION CSS (ANIMATION BRUME CORRIGÉE + DÉBLOCAGE INTERFACE) ---
+# --- GESTION DE L'ANIMATION BÊTA EN SESSION ---
+if "intro_affichee" not in st.session_state:
+    st.session_state["intro_affichee"] = False
+
+# --- INJECTION CSS & ANIMATION EPHEMERE ---
 st.markdown("""
     <style>
     #MainMenu {visibility: hidden;}
@@ -26,57 +29,62 @@ st.markdown("""
     [data-testid="stChatMessageAvatarUser"], [data-testid="stChatMessageAvatarAssistant"] {
         display: none !important;
     }
-    
-    /* --- ANIMATION BRUME SANS BLOCAGE (pointer-events: none + visibility: hidden) --- */
-    @keyframes brumeIntro {
-        0% { opacity: 0; filter: blur(20px); transform: scale(1.1); visibility: visible; }
-        30% { opacity: 1; filter: blur(4px); transform: scale(1.02); visibility: visible; }
-        85% { opacity: 1; filter: blur(1px); transform: scale(1); visibility: visible; }
-        100% { opacity: 0; filter: blur(15px); transform: scale(0.98); visibility: hidden; }
-    }
-
-    .intro-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background-color: #000000;
-        color: #ffffff;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        z-index: 999999;
-        pointer-events: none; /* PERMET DE CLIQUER À TRAVERS L'INTERFACE */
-        animation: brumeIntro 3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-        font-family: monospace;
-        letter-spacing: 10px;
-        font-size: 3.2em;
-        font-weight: bold;
-    }
-    
-    .intro-sub {
-        font-size: 0.35em;
-        letter-spacing: 5px;
-        color: #888888;
-        margin-top: 12px;
-    }
     </style>
-
-    <!-- ÉCRAN D'INTRODUCTION CINÉMATIQUE (BÊTA) -->
-    <div class="intro-overlay">
-        AEGIS-CORE
-        <div class="intro-sub">// PROTOCOLE BÊTA INITIALISÉ //</div>
-    </div>
-    
-    <!-- AUDIO MILITAIRE IMMERSIF (3 SECONDES) -->
-    <audio autoplay style="display:none;">
-        <source src="https://www.myinstants.com/media/sounds/metal-gear-solid-alert-sound.mp3" type="audio/mpeg">
-    </audio>
 """, unsafe_allow_html=True)
 
-# --- FONCTION POUR CHARGER LES ÉMOJIS D'ÉLITE ---
+# Lancer l'animation uniquement la première fois
+if not st.session_state["intro_affichee"]:
+    st.markdown("""
+        <style>
+        @keyframes brumeIntro {
+            0% { opacity: 0; filter: blur(20px); transform: scale(1.1); }
+            50% { opacity: 1; filter: blur(2px); transform: scale(1); }
+            100% { opacity: 0; filter: blur(10px); transform: scale(0.95); }
+        }
+
+        .intro-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #000000;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 999999;
+            animation: brumeIntro 2.8s ease-in-out forwards;
+            font-family: monospace;
+            letter-spacing: 8px;
+            font-size: 3em;
+            font-weight: bold;
+        }
+        
+        .intro-sub {
+            font-size: 0.35em;
+            letter-spacing: 4px;
+            color: #888888;
+            margin-top: 10px;
+        }
+        </style>
+
+        <div class="intro-overlay">
+            AEGIS-CORE
+            <div class="intro-sub">// PROTOCOLE BÊTA INITIALISÉ //</div>
+        </div>
+        
+        <audio autoplay style="display:none;">
+            <source src="https://www.myinstants.com/media/sounds/metal-gear-solid-alert-sound.mp3" type="audio/mpeg">
+        </audio>
+    """, unsafe_allow_html=True)
+    
+    time.sleep(2.8)
+    st.session_state["intro_affichee"] = True
+    st.rerun()
+
+# --- FONCTIONS UTILITAIRES ---
 def get_base64_img(path):
     if os.path.exists(path):
         with open(path, "rb") as f:
@@ -166,3 +174,111 @@ with st.sidebar:
     
     if st.button("🚀 Injecter le prompt"):
         quick_action = prompt_selectionne
+
+# --- SYSTEM PROMPT ---
+SYSTEM_PROMPT = (
+    "Tu es AEGIS-CORE (Version Bêta), un systeme d'IA souverain developpe par le Commandant. "
+    "Tu es ultra-performant, direct et rigoureux. "
+    "Si tu emets une hypothese ou une deduction, étiquette-la OBLIGATOIREMENT par '[HYPOTHESE / DEDUCTION]'."
+)
+
+# --- INTERFACE PRINCIPALE ---
+col_logo, col_title = st.columns([0.12, 0.88])
+with col_logo:
+    if os.path.exists("assets/aegis_logo.png"):
+        st.image("assets/aegis_logo.png", width=80)
+    else:
+        st.markdown("🛡️")
+with col_title:
+    st.markdown(f"### AEGIS-CORE // {st.session_state['session_active'].upper()} (BÊTA)")
+    st.caption(f"Domaine actif : **{theme_choisi}**")
+
+st.markdown("---")
+
+messages_actuels = st.session_state["sessions"][st.session_state["session_active"]]
+
+for message in messages_actuels:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+# --- ÉDITION DU DERNIER MESSAGE ---
+if messages_actuels:
+    dernier_index_user = -1
+    for idx, m in enumerate(reversed(messages_actuels)):
+        if m["role"] == "user":
+            dernier_index_user = len(messages_actuels) - 1 - idx
+            break
+            
+    if dernier_index_user != -1:
+        with st.expander("✏️ Modifier votre dernière directive"):
+            nouveau_texte = st.text_input("Ajustez votre consigne :", value=messages_actuels[dernier_index_user]["content"], key=f"edit_{st.session_state['session_active']}")
+            if st.button("Mettre à jour et relancer", key=f"btn_edit_{st.session_state['session_active']}"):
+                messages_actuels[dernier_index_user]["content"] = nouveau_texte
+                if len(messages_actuels) > dernier_index_user + 1:
+                    messages_actuels.pop()
+                st.rerun()
+
+prompt = st.chat_input("Entrez votre directive, Commandant...")
+if quick_action:
+    prompt = quick_action
+
+if prompt:
+    messages_actuels.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
+
+    with st.chat_message("assistant"):
+        reponse_finale = ""
+        succes = False
+
+        if gemini_key and not succes:
+            for model_name in ["gemini-2.5-flash", "gemini-1.5-flash"]:
+                try:
+                    model = genai.GenerativeModel(model_name=model_name, system_instruction=SYSTEM_PROMPT)
+                    chat_history = [{"role": "user" if m["role"] == "user" else "model", "parts": [m["content"]]} for m in messages_actuels[:-1]]
+                    chat = model.start_chat(history=chat_history)
+                    response = chat.send_message(prompt, stream=True)
+
+                    def generate_fast_stream():
+                        for chunk in response:
+                            if chunk.text:
+                                for char in chunk.text:
+                                    yield char
+                                    time.sleep(0.0001)
+
+                    reponse_finale = st.write_stream(generate_fast_stream())
+                    succes = True
+                    break
+                except Exception:
+                    pass
+
+        if groq_keys and not succes:
+            messages_payload = [{"role": "system", "content": SYSTEM_PROMPT}] + [{"role": m["role"], "content": m["content"]} for m in messages_actuels]
+            for g_key in groq_keys:
+                try:
+                    client = Groq(api_key=g_key)
+                    stream = client.chat.completions.create(
+                        model="openai/gpt-oss-20b", 
+                        messages=messages_payload, 
+                        stream=True
+                    )
+                    
+                    def generate_groq_fast():
+                        for chunk in stream:
+                            content = chunk.choices[0].delta.content
+                            if content:
+                                for char in content:
+                                    yield char
+                                    time.sleep(0.0001)
+
+                    reponse_finale = st.write_stream(generate_groq_fast())
+                    succes = True
+                    break
+                except Exception:
+                    pass
+
+        if not succes:
+            reponse_finale = "❌ Erreur de réseau : Les canaux distants ne répondent pas."
+            st.markdown(reponse_finale)
+
+        messages_actuels.append({"role": "assistant", "content": reponse
