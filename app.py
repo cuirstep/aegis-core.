@@ -222,15 +222,4 @@ MATRICE_PROMPTS = {
     ]
 }
 
-# --- MATRICE DE PERSONNALISATION (30 THEMES x 30 PROPOSITIONS) ---
-noms_themes_perso = [
-    "Palette de Couleurs & Ambiance", "Typographie & Polices", "Taille & Echelle des Textes",
-    "Avatars & Symboles Tactiques", "Disposition & Mise en Page", "Theme des Blocs de Code",
-    "Densite d'Affichage & Spacing", "Mode Focus & Epure", "Horodatage & Metadonnees",
-    "Langue & Registre de l'IA", "Tonalite & Style de Reponse", "Longueur Max & Verbosite",
-    "Mode Resume & Synthese", "Message de Bienvenue", "Vitesse de Frappe & Streaming",
-    "Alertes Sonores & Volume", "Effets Visuels & Brume", "Raccourcis Clavier & Envoi",
-    "Historique & Incognito", "Mode Economie de Donnees", "Defilement Automatique",
-    "Niveau de Rigueur & RAG", "Format des Explications (Bullet/Markdown)", "Gestion des Emojis",
-    "Mise en Evidence des Hypotheses", "Prompt Systeme Personnalise", "Mode Console / Terminal",
-    "Exportation des Discussions", "Gestion des Alertes Reseau", "Comportement de Repli (Fallback)"
+# --- MATRICE DE PERSONNAL
