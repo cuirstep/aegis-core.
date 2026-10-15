@@ -44,7 +44,7 @@ if "sessions" not in st.session_state:
 if "session_active" not in st.session_state:
     st.session_state["session_active"] = "Discussion 1"
 
-# --- INJECTION CSS & ANIMATION BRUME ---
+# --- INJECTION CSS & ANIMATION BRUME CORRIGÉE ---
 st.markdown("""
     <style>
     #MainMenu {visibility: hidden;}
@@ -61,8 +61,8 @@ st.markdown("""
     
     @keyframes brumeFadeOut {
         0% { opacity: 1; filter: blur(0px); visibility: visible; }
-        75% { opacity: 1; filter: blur(3px); visibility: visible; }
-        100% { opacity: 0; filter: blur(15px); visibility: hidden; display: none; }
+        70% { opacity: 1; filter: blur(3px); visibility: visible; }
+        100% { opacity: 0; filter: blur(15px); visibility: hidden; pointer-events: none; }
     }
 
     .intro-overlay {
@@ -78,8 +78,7 @@ st.markdown("""
         justify-content: center;
         align-items: center;
         z-index: 999999;
-        pointer-events: none;
-        animation: brumeFadeOut 2.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        animation: brumeFadeOut 2.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
         font-family: monospace;
         letter-spacing: 8px;
         font-size: 3em;
@@ -222,4 +221,113 @@ MATRICE_PROMPTS = {
     ]
 }
 
-# --- MATRICE DE PERSONNAL
+# --- MATRICE DE PERSONNALISATION (30 THEMES x 30 PROPOSITIONS) ---
+noms_themes_perso = [
+    "Palette de Couleurs et Ambiance", "Typographie et Polices", "Taille et Echelle des Textes",
+    "Avatars et Symboles Tactiques", "Disposition et Mise en Page", "Theme des Blocs de Code",
+    "Densite d'Affichage et Spacing", "Mode Focus et Epure", "Horodatage et Metadonnees",
+    "Langue et Registre de l'IA", "Tonalite et Style de Reponse", "Longueur Max et Verbosite",
+    "Mode Resume et Synthese", "Message de Bienvenue", "Vitesse de Frappe et Streaming",
+    "Alertes Sonores et Volume", "Effets Visuels et Brume", "Raccourcis Clavier et Envoi",
+    "Historique et Incognito", "Mode Economie de Donnees", "Defilement Automatique",
+    "Niveau de Rigueur et RAG", "Format des Explications", "Gestion des Emojis",
+    "Mise en Evidence des Hypotheses", "Prompt Systeme Personnalise", "Mode Console ou Terminal",
+    "Exportation des Discussions", "Gestion des Alertes Reseau", "Comportement de Repli"
+]
+
+propositions_exemples = [
+    "Defaut Obscur", "Cyberpunk Gold", "Nuit Profonde", "Matrice Verte", "Bleu Tactique", 
+    "Rouge Alerte", "Ombre Grise", "Blanc Epure", "Neon Violet", "Ambre Retro", 
+    "Stealth Black", "Monochrome", "Solaire Ultra", "Ocean Profond", "Foret Sombre"
+]
+
+MATRICE_PERSONNALISATION = {}
+for i, nom in enumerate(noms_themes_perso):
+    cle_theme = f"Theme {i+1} : {nom}"
+    liste_props = [f"Proposition {j+1} : {propositions_exemples[j % len(propositions_exemples)]} (Mode {j+1})" for j in range(30)]
+    MATRICE_PERSONNALISATION[cle_theme] = liste_props
+
+# --- BARRE LATERALE ---
+quick_action = None
+
+with st.sidebar:
+    st.subheader("Espace Membre")
+    if not st.session_state.current_user:
+        tab_login, tab_register = st.tabs(["Connexion", "Creer un compte"])
+
+        with tab_register:
+            new_user = st.text_input("Pseudo", key="reg_user")
+            p1 = st.text_input("Mot de passe", type="password", key="reg_p1")
+            p2 = st.text_input("Confirmez le mot de passe", type="password", key="reg_p2")
+            if st.button("Valider la creation"):
+                if not new_user or not p1:
+                    st.error("Champs incomplets.")
+                elif p1 != p2:
+                    st.error("Les mots de passe ne correspondent pas.")
+                elif new_user in st.session_state.profiles:
+                    st.error("Ce pseudo existe deja.")
+                else:
+                    st.session_state.profiles[new_user] = {
+                        "password": p1,
+                        "config": {}
+                    }
+                    save_profiles(st.session_state.profiles)
+                    st.success("Compte cree avec succes ! Connectez-vous.")
+
+        with tab_login:
+            log_user = st.text_input("Pseudo", key="log_user")
+            log_pass = st.text_input("Mot de passe", type="password", key="log_pass")
+            if st.button("Se connecter"):
+                profiles = st.session_state.profiles
+                if log_user in profiles and profiles[log_user]["password"] == log_pass:
+                    st.session_state.current_user = log_user
+                    st.success(f"Bienvenue {log_user} !")
+                    st.rerun()
+                else:
+                    st.error("Identifiants incorrects.")
+    else:
+        st.success(f"Connecte : **{st.session_state.current_user}**")
+        if st.button("Deconnexion"):
+            st.session_state.current_user = None
+            st.rerun()
+
+    st.markdown("---")
+
+    # ESPACE COMMANDANT (ADMIN)
+    if not st.session_state.is_admin:
+        with st.expander("Espace Commandant"):
+            admin_code = st.text_input("Code Secret", type="password", key="admin_key")
+            if st.button("Authentification Admin"):
+                correct_admin_code = st.secrets.get("ADMIN_CODE", "AEGIS2026")
+                if admin_code == correct_admin_code:
+                    st.session_state.is_admin = True
+                    st.success("Acces Commandant active.")
+                    st.rerun()
+                else:
+                    st.error("Code refuse.")
+    else:
+        st.info("Mode Commandant Total")
+        if st.button("Verrouiller Admin"):
+            st.session_state.is_admin = False
+            st.rerun()
+
+    st.markdown("---")
+
+    # MULTI-SESSIONS
+    st.markdown("### MULTI-SESSIONS")
+    if st.button("Nouvelle discussion"):
+        new_name = f"Discussion {len(st.session_state['sessions']) + 1}"
+        st.session_state["sessions"][new_name] = []
+        st.session_state["session_active"] = new_name
+        st.rerun()
+
+    session_choisie = st.selectbox("Sessions enregistrees :", list(st.session_state["sessions"].keys()), index=list(st.session_state["sessions"].keys()).index(st.session_state["session_active"]))
+    if session_choisie != st.session_state["session_active"]:
+        st.session_state["session_active"] = session_choisie
+        st.rerun()
+
+    st.markdown("---")
+
+    # MATRICE DE COMMANDES (PROMPTS)
+    st.markdown("### MATRICE DE COMMANDES")
+    theme_choisi = st.selectbox("Domaine Prompt :", list(MATR
