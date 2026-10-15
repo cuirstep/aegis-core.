@@ -42,7 +42,7 @@ if "sessions" not in st.session_state:
     st.session_state["sessions"] = {"Discussion 1": []}
 
 if "session_active" not in st.session_state:
-    st.session_active = "Discussion 1"
+    st.session_state["session_active"] = "Discussion 1"
 
 # --- INJECTION CSS & ANIMATION BRUME ---
 st.markdown("""
@@ -223,4 +223,44 @@ MATRICE_PROMPTS = {
 }
 
 # --- MATRICE DE PERSONNALISATION (30 THÈMES x 30 PROPOSITIONS) ---
-MATRICE_PERSONNALISATION = {
+noms_themes_perso = [
+    "Palette de Couleurs & Ambiance", "Typographie & Polices", "Taille & Échelle des Textes",
+    "Avatars & Symboles Tactiques", "Disposition & Mise en Page", "Thème des Blocs de Code",
+    "Densité d'Affichage & Spacing", "Mode Focus & Épuré", "Horodatage & Métadonnées",
+    "Langue & Registre de l'IA", "Tonalité & Style de Réponse", "Longueur Max & Verbosité",
+    "Mode Résumé & Synthèse", "Message de Bienvenue", "Vitesse de Frappe & Streaming",
+    "Alertes Sonores & Volume", "Effets Visuels & Brume", "Raccourcis Clavier & Envoi",
+    "Historique & Incognito", "Mode Économie de Données", "Défilement Automatique",
+    "Niveau de Rigueur & RAG", "Format des Explications (Bullet/Markdown)", "Gestion des Émojis dans la Réponse",
+    "Mise en Évidence des Hypothèses", "Prompt Système Personnalisé", "Mode Console / Terminal",
+    "Exportation des Discussions (PDF/MD)", "Gestion des Alertes Réseau", "Comportement de Repli (Fallback)"
+]
+
+propositions_exemples = [
+    "Défaut Obscur", "Cyberpunk Gold", "Nuit Profonde", "Matrice Verte", "Bleu Tactique", "Rouge Alerte", "Ombre Grise", "Blanc Épuré",
+    "Néon Violet", "Ambre Rétro", "Stealth Black", "Monochrome", "Solaire Ultra", "Océan Profond", "Forêt Sombre", "Cuivre Militaire",
+    "Argente Sovereign", "Graphite Pro", "Titanium Dark", "Bordeaux Command", "Bronze Antique", "Cyan Futur", "Aurore Boréale", "Cendres",
+    "Espace Profond", "Néon Bleu", "Standard Sombre", "Contraste Élevé", "Aura Dorée", "Désert Tactique"
+]
+
+MATRICE_PERSONNALISATION = {}
+for i, nom in enumerate(noms_themes_perso):
+    cle_theme = f"Thème {i+1} : {nom}"
+    liste_props = [f"Proposition {j+1} : {propositions_exemples[j % len(propositions_exemples)]} (Mode {j+1})" for j in range(30)]
+    MATRICE_PERSONNALISATION[cle_theme] = liste_props
+
+# --- BARRE LATÉRALE ---
+quick_action = None
+
+with st.sidebar:
+    if os.path.exists("assets/aegis_logo.png"):
+        st.image("assets/aegis_logo.png", width=120)
+    
+    # 1. ESPACE MEMBRE & CONNEXION
+    st.subheader("👤 Espace Membre")
+    if not st.session_state.current_user:
+        tab_login, tab_register = st.tabs(["Connexion", "Créer un compte"])
+
+        with tab_register:
+            new_user = st.text_input("Pseudo", key="reg_user")
+            p
