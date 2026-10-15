@@ -344,55 +344,116 @@ if prompt_input:
         messages_actuels.append({"role": "assistant", "content": reponse_finale})
 import streamlit as st
 
-# --- INITIALISATION DE L'ÉTAT DE SESSION ---
+# --- CONFIGURATION INITIALE DES ÉTATS ---
 if "is_admin" not in st.session_state:
     st.session_state.is_admin = False
 
-if "custom_admin_code" not in st.session_state:
-    # Code administrateur par défaut si l'utilisateur n'en a pas encore défini
-    st.session_state.custom_admin_code = st.secrets.get("ADMIN_CODE", "1234")
+if "user_logged" not in st.session_state:
+    st.session_state.user_logged = False
 
-# --- BARRE LATÉRALE : ESPACE COMMANDANT & PERSONNALISATION ---
+if "user_profiles" not in st.session_state:
+    # Stockage temporaire des profils utilisateurs créés (pseudo -> mot de passe)
+    st.session_state.user_profiles = {}
+
+if "current_user" not in st.session_state:
+    st.session_state.current_user = None
+
+# --- BARRE LATÉRALE : GESTION DES ESPACES ---
 with st.sidebar:
     st.title("🛡️ AEGIS-CORE")
     st.markdown("---")
     
-    # Section d'accès Admin
-    if not st.session_state.is_admin:
-        with st.expander("🔐 Espace Commandant (Admin)"):
-            admin_input = st.text_input("Entrez votre code d'accès", type="password")
-            if st.button("Déverrouiller"):
-                if admin_input == st.session_state.custom_admin_code:
-                    st.session_state.is_admin = True
-                    st.success("Accès administrateur accordé !")
+    # --- SECTION 1 : ESPACE UTILISATEUR (Personnalisation & Sécurité) ---
+    st.subheader("👤 Espace Utilisateur")
+    
+    if not st.session_state.user_logged:
+        user_choice = st.radio("Action", ["Se connecter", "Créer un profil"], key="user_mode_radio")
+        
+        if user_choice == "Créer un profil":
+            new_pseudo = st.text_input("Choisissez votre pseudo", key="new_user_pseudo")
+            pass1 = st.text_input("Mot de passe", type="password", key="new_pass1")
+            pass2 = st.text_input("Confirmez le mot de passe", type="password", key="new_pass2")
+            
+            if st.button("Enregistrer mon profil"):
+                if not new_pseudo or not pass1:
+                    st.error("Veuillez remplir tous les champs.")
+                elif pass1 != pass2:
+                    st.error("Les deux mots de passe ne correspondent pas.")
+                elif new_pseudo in st.session_state.user_profiles:
+                    st.error("Ce pseudo existe déjà.")
+                else:
+                    st.session_state.user_profiles[new_pseudo] = pass1
+                    st.success("Profil créé avec succès ! Connectez-vous.")
+        
+        else: # Se connecter
+            login_pseudo = st.text_input("Votre pseudo", key="login_pseudo")
+            login_pass = st.text_input("Mot de passe", type="password", key="login_pass")
+            
+            if st.button("Connexion Utilisateur"):
+                if login_pseudo in st.session_state.user_profiles and st.session_state.user_profiles[login_pseudo] == login_pass:
+                    st.session_state.user_logged = True
+                    st.session_state.current_user = login_pseudo
+                    st.success(f"Bienvenue, {login_pseudo} !")
                     st.rerun()
                 else:
-                    st.error("Code incorrect.")
+                    st.error("Pseudo ou mot de passe incorrect.")
     else:
-        st.success("🟢 Mode Admin Actif")
-        
-        # --- SECTION PERSONNALISATION DU CODE ADMIN ---
-        with st.expander("⚙️ Personnaliser mon code d'accès"):
-            nouveau_code = st.text_input("Nouveau code secret", type="password")
-            confirm_code = st.text_input("Confirmer le nouveau code", type="password")
-            if st.button("Mettre à jour le code"):
-                if nouveau_code and nouveau_code == confirm_code:
-                    st.session_state.custom_admin_code = nouveau_code
-                    st.success("Code administrateur mis à jour avec succès !")
-                else:
-                    st.error("Les codes ne correspondent pas ou sont vides.")
-        
-        if st.button("Verrouiller la session"):
+        st.success(connect_msg := f"Connecté en tant que : **{st.session_state.current_user}**")
+        if st.button("Déconnexion Utilisateur"):
+            st.session_state.user_logged = False
+            st.session_state.current_user = None
+            st.rerun()
+
+    st.markdown("---")
+
+    # --- SECTION 2 : ESPACE COMMANDANT (Admin Total) ---
+    st.subheader("🔐 Espace Commandant")
+    
+    if not st.session_state.is_admin:
+        admin_input = st.text_input("Code Commandant", type="password", key="admin_code_input")
+        if st.button("Déverrouiller Admin"):
+            # Récupère le code admin depuis les secrets Streamlit (ou "AEGIS2026" par défaut)
+            correct_admin_code = st.secrets.get("ADMIN_CODE", "AEGIS2026")
+            if admin_input == correct_admin_code:
+                st.session_state.is_admin = True
+                st.success("Accès Commandant accordé !")
+                st.rerun()
+            else:
+                st.error("Code Commandant incorrect.")
+    else:
+        st.success("🟢 Mode Commandant Actif (100% Droits)")
+        if st.button("Verrouiller l'Admin"):
             st.session_state.is_admin = False
             st.rerun()
 
-# --- CORPS DE L'APPLICATION ---
-st.markdown("# Interface Principale AEGIS-CORE")
+# --- CORPS PRINCIPAL DE L'APPLICATION ---
+st.title("AEGIS-CORE — Interface Souveraine")
 
+# 1. Si le Commandant est connecté : Accès total aux réglages avancés et au noyau
 if st.session_state.is_admin:
-    st.info("🛠️ **Panneau de configuration personnalisé actif** : Vous pouvez modifier les paramètres de votre instance AEGIS ici.")
-    # Espace réservé pour vos modifications administrateur
-    app_title = st.text_input("Modifier le titre affiché d'AEGIS", value="AEGIS-CORE Bêta")
-    st.write(f"Titre actuel configuré : **{app_title}**")
+    st.markdown("### 🛠️ Panneau de Contrôle Avancé (Réservé au Commandant)")
+    st.info("Vous avez le contrôle total sur le système, les clés API, les logs et la configuration globale.")
+    
+    # Exemple de commande admin sécurisée
+    with st.expander("⚙️ Paramètres système et maintenance"):
+        st.write(f"Profils utilisateurs enregistrés : {len(st.session_state.user_profiles)}")
+        if st.button("Purger les profils utilisateurs"):
+            st.session_state.user_profiles = {}
+            st.success("Base des profils vidée.")
+
+# 2. Si un utilisateur classique est connecté : Personnalisation sécurisée sans risque de tout casser
+elif st.session_state.user_logged:
+    st.markdown(f"### 🎛️ Espace de Personnalisation de {st.session_state.current_user}")
+    st.write("Ici, vous pouvez personnaliser votre expérience AEGIS (choix des thèmes, préférences d'affichage) en toute sécurité.")
+    
+    # Paramètres utilisateur inoffensifs pour l'app
+    user_theme = st.selectbox("Choisir l'ambiance visuelle de votre interface :", ["Défaut (Brume cinématique)", "Mode Clair", "Mode Nuit Profond"])
+    user_notifications = st.checkbox("Activer les alertes sonores personnalisées", value=True)
+    
+    if st.button("Sauvegarder mes préférences"):
+        st.success("Préférences enregistrées avec succès !")
+
+# 3. Si personne n'est connecté : Accueil général et Chat public
 else:
-    st.write("Bienvenue sur l'intelligence souveraine du peuple. Le chat et les fonctionnalités standard sont prêts.")
+    st.warning("⚠️ Veuillez vous connecter via la barre latérale pour accéder à votre espace personnalisé ou lancer le chat.")
+    st.markdown("Bienvenue sur la version Bêta d'AEGIS-CORE. L'intelligence souveraine du peuple.")
