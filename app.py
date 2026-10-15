@@ -1,16 +1,50 @@
 import streamlit as st
 import os
 import base64
+import json
 from groq import Groq
 import google.generativeai as genai
 
+# --- CONFIGURATION DE LA PAGE ---
 st.set_page_config(
     page_title="AEGIS-CORE // BETA", 
     page_icon="assets/aegis_logo.png" if os.path.exists("assets/aegis_logo.png") else "🛡️", 
     layout="wide"
 )
 
-# --- INJECTION CSS & ANIMATION BRUME (GÉRÉE EN PUR CSS/JS SANS BLOQUER) ---
+# --- PERSISTANCE DES PROFILS UTILISATEURS ---
+USER_DB_FILE = "user_profiles.json"
+
+def load_profiles():
+    if os.path.exists(USER_DB_FILE):
+        try:
+            with open(USER_DB_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            return {}
+    return {}
+
+def save_profiles(profiles):
+    with open(USER_DB_FILE, "w", encoding="utf-8") as f:
+        json.dump(profiles, f, ensure_ascii=False, indent=2)
+
+# Initialisation des états globaux
+if "profiles" not in st.session_state:
+    st.session_state.profiles = load_profiles()
+
+if "is_admin" not in st.session_state:
+    st.session_state.is_admin = False
+
+if "current_user" not in st.session_state:
+    st.session_state.current_user = None
+
+if "sessions" not in st.session_state:
+    st.session_state["sessions"] = {"Discussion 1": []}
+
+if "session_active" not in st.session_state:
+    st.session_state["session_active"] = "Discussion 1"
+
+# --- INJECTION CSS & ANIMATION BRUME ---
 st.markdown("""
     <style>
     #MainMenu {visibility: hidden;}
@@ -25,7 +59,6 @@ st.markdown("""
         display: none !important;
     }
     
-    /* --- ANIMATION BRUME DISPARITION AUTOMATIQUE --- */
     @keyframes brumeFadeOut {
         0% { opacity: 1; filter: blur(0px); visibility: visible; }
         75% { opacity: 1; filter: blur(3px); visibility: visible; }
@@ -61,13 +94,11 @@ st.markdown("""
     }
     </style>
 
-    <!-- ÉCRAN D'INTRODUCTION CINÉMATIQUE -->
     <div class="intro-overlay">
         AEGIS-CORE
         <div class="intro-sub">// PROTOCOLE BÊTA INITIALISÉ //</div>
     </div>
     
-    <!-- AUDIO MILITAIRE COURT (3 SECONDES) -->
     <audio autoplay style="display:none;">
         <source src="https://www.myinstants.com/media/sounds/metal-gear-solid-alert-sound.mp3" type="audio/mpeg">
     </audio>
@@ -88,7 +119,6 @@ def custom_icon(path, size=24):
 
 # --- API KEYS & CONFIG ---
 gemini_key = st.secrets.get("GEMINI_API_KEY", "")
-github_token = st.secrets.get("GITHUB_TOKEN", "")
 groq_keys = []
 for i in range(1, 6):
     key = st.secrets.get(f"GROQ_API_KEY_{i}", "")
@@ -192,19 +222,88 @@ MATRICE_PROMPTS = {
     ]
 }
 
-# --- MULTI-SESSIONS ---
-if "sessions" not in st.session_state:
-    st.session_state["sessions"] = {"Discussion 1": []}
-if "session_active" not in st.session_state:
-    st.session_state["session_active"] = "Discussion 1"
-
-# --- SIDEBAR ---
+# --- BARRE LATÉRALE ---
 quick_action = None
 
 with st.sidebar:
     if os.path.exists("assets/aegis_logo.png"):
         st.image("assets/aegis_logo.png", width=120)
     
+    # 1. ESPACE MEMBRE & PERSONNALISATION
+    st.subheader("👤 Espace Membre")
+    if not st.session_state.current_user:
+        tab_login, tab_register = st.tabs(["Connexion", "Créer un compte"])
+
+        with tab_register:
+            new_user = st.text_input("Pseudo", key="reg_user")
+            p1 = st.text_input("Mot de passe", type="password", key="reg_p1")
+            p2 = st.text_input("Confirmez le mot de passe", type="password", key="reg_p2")
+            if st.button("Valider la création"):
+                if not new_user or not p1:
+                    st.error("Champs incomplets.")
+                elif p1 != p2:
+                    st.error("Les mots de passe ne correspondent pas.")
+                elif new_user in st.session_state.profiles:
+                    st.error("Ce pseudo existe déjà.")
+                else:
+                    st.session_state.profiles[new_user] = {
+                        "password": p1,
+                        "config": {
+                            "theme": "Sombre Cinématique",
+                            "font_size": "Moyenne",
+                            "sound": True,
+                            "speed": "Normale",
+                            "avatar": "🛡️",
+                            "density": "Équilibré",
+                            "summary_mode": False,
+                            "auto_scroll": True,
+                            "lang": "Français",
+                            "tone": "Factuel & Précis"
+                        }
+                    }
+                    save_profiles(st.session_state.profiles)
+                    st.success("Compte créé avec succès ! Connectez-vous.")
+
+        with tab_login:
+            log_user = st.text_input("Pseudo", key="log_user")
+            log_pass = st.text_input("Mot de passe", type="password", key="log_pass")
+            if st.button("Se connecter"):
+                profiles = st.session_state.profiles
+                if log_user in profiles and profiles[log_user]["password"] == log_pass:
+                    st.session_state.current_user = log_user
+                    st.success(f"Bienvenue {log_user} !")
+                    st.rerun()
+                else:
+                    st.error("Identifiants incorrects.")
+    else:
+        st.success(f"Connecté : **{st.session_state.current_user}**")
+        if st.button("Déconnexion"):
+            st.session_state.current_user = None
+            st.rerun()
+
+    st.markdown("---")
+
+    # 2. ESPACE COMMANDANT (ADMIN)
+    if not st.session_state.is_admin:
+        with st.expander("🔐 Espace Commandant"):
+            admin_code = st.text_input("Code Secret", type="password", key="admin_key")
+            if st.button("Authentification Admin"):
+                correct_admin_code = st.secrets.get("ADMIN_CODE", "AEGIS2026")
+                if admin_code == correct_admin_code:
+                    st.session_state.is_admin = True
+                    st.success("Accès Commandant activé.")
+                    st.rerun()
+                else:
+                    st.error("Code refusé.")
+    else:
+        st.info("🟢 Mode Commandant Total")
+        if st.button("Verrouiller Admin"):
+            st.session_state.is_admin = False
+            st.rerun()
+
+    st.markdown("---")
+
+    # 3. MULTI-SESSIONS
     icon_sessions = custom_icon("assets/aegis_sessions.png")
     st.markdown(f"### {icon_sessions} MULTI-SESSIONS", unsafe_allow_html=True)
     
@@ -220,6 +319,8 @@ with st.sidebar:
         st.rerun()
 
     st.markdown("---")
+
+    # 4. MATRICE DE COMMANDES
     icon_code = custom_icon("assets/aegis_code.png")
     st.markdown(f"### {icon_code} MATRICE DE COMMANDES", unsafe_allow_html=True)
     theme_choisi = st.selectbox("Domaine :", list(MATRICE_PROMPTS.keys()))
@@ -248,13 +349,35 @@ with col_title:
 
 st.markdown("---")
 
+# Gestion affichage selon profil ou admin
+if st.session_state.is_admin:
+    st.header("🛠️ Panneau de Contrôle Global (Commandant)")
+    st.warning("Accès complet aux données, profils et diagnostics du serveur.")
+    st.write(f"Nombre de comptes enregistrés : {len(st.session_state.profiles)}")
+    if st.button("Réinitialiser tous les profils utilisateurs"):
+        st.session_state.profiles = {}
+        save_profiles({})
+        st.success("Base de données purgée.")
+    st.markdown("---")
+
+elif st.session_state.current_user:
+    user = st.session_state.current_user
+    config = st.session_state.profiles[user]["config"]
+    with st.expander(f"⚙️ Paramètres de personnalisation ({user})"):
+        config["theme"] = st.selectbox("Ambiance visuelle", ["Sombre Cinématique", "Cyberpunk Gold", "Mode Épuré"], index=0)
+        config["font_size"] = st.select_slider("Taille de police", options=["Petite", "Moyenne", "Grande"], value="Moyenne")
+        if st.button("Sauvegarder mes réglages"):
+            st.session_state.profiles[user]["config"] = config
+            save_profiles(st.session_state.profiles)
+            st.success("Préférences sauvegardées !")
+
+# --- GESTION DU CHAT ---
 messages_actuels = st.session_state["sessions"][st.session_state["session_active"]]
 
 for message in messages_actuels:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# --- GESTION DE LA SAISIE & ÉDITION ---
 prompt_a_traiter = None
 
 if messages_actuels:
@@ -272,14 +395,12 @@ if messages_actuels:
                 prompt_a_traiter = nouveau_texte
                 st.rerun()
 
-# Récupération de la saisie (Chat input, Quick Action ou Édition)
 prompt_input = st.chat_input("Entrez votre directive, Commandant...")
 if quick_action:
     prompt_input = quick_action
 if prompt_a_traiter:
     prompt_input = prompt_a_traiter
 
-# --- TRAITEMENT DU PROMPT ET APPEL AUX LLM ---
 if prompt_input:
     messages_actuels.append({"role": "user", "content": prompt_input})
     with st.chat_message("user"):
@@ -342,118 +463,3 @@ if prompt_input:
             st.markdown(reponse_finale)
 
         messages_actuels.append({"role": "assistant", "content": reponse_finale})
-import streamlit as st
-
-# --- CONFIGURATION INITIALE DES ÉTATS ---
-if "is_admin" not in st.session_state:
-    st.session_state.is_admin = False
-
-if "user_logged" not in st.session_state:
-    st.session_state.user_logged = False
-
-if "user_profiles" not in st.session_state:
-    # Stockage temporaire des profils utilisateurs créés (pseudo -> mot de passe)
-    st.session_state.user_profiles = {}
-
-if "current_user" not in st.session_state:
-    st.session_state.current_user = None
-
-# --- BARRE LATÉRALE : GESTION DES ESPACES ---
-with st.sidebar:
-    st.title("🛡️ AEGIS-CORE")
-    st.markdown("---")
-    
-    # --- SECTION 1 : ESPACE UTILISATEUR (Personnalisation & Sécurité) ---
-    st.subheader("👤 Espace Utilisateur")
-    
-    if not st.session_state.user_logged:
-        user_choice = st.radio("Action", ["Se connecter", "Créer un profil"], key="user_mode_radio")
-        
-        if user_choice == "Créer un profil":
-            new_pseudo = st.text_input("Choisissez votre pseudo", key="new_user_pseudo")
-            pass1 = st.text_input("Mot de passe", type="password", key="new_pass1")
-            pass2 = st.text_input("Confirmez le mot de passe", type="password", key="new_pass2")
-            
-            if st.button("Enregistrer mon profil"):
-                if not new_pseudo or not pass1:
-                    st.error("Veuillez remplir tous les champs.")
-                elif pass1 != pass2:
-                    st.error("Les deux mots de passe ne correspondent pas.")
-                elif new_pseudo in st.session_state.user_profiles:
-                    st.error("Ce pseudo existe déjà.")
-                else:
-                    st.session_state.user_profiles[new_pseudo] = pass1
-                    st.success("Profil créé avec succès ! Connectez-vous.")
-        
-        else: # Se connecter
-            login_pseudo = st.text_input("Votre pseudo", key="login_pseudo")
-            login_pass = st.text_input("Mot de passe", type="password", key="login_pass")
-            
-            if st.button("Connexion Utilisateur"):
-                if login_pseudo in st.session_state.user_profiles and st.session_state.user_profiles[login_pseudo] == login_pass:
-                    st.session_state.user_logged = True
-                    st.session_state.current_user = login_pseudo
-                    st.success(f"Bienvenue, {login_pseudo} !")
-                    st.rerun()
-                else:
-                    st.error("Pseudo ou mot de passe incorrect.")
-    else:
-        st.success(connect_msg := f"Connecté en tant que : **{st.session_state.current_user}**")
-        if st.button("Déconnexion Utilisateur"):
-            st.session_state.user_logged = False
-            st.session_state.current_user = None
-            st.rerun()
-
-    st.markdown("---")
-
-    # --- SECTION 2 : ESPACE COMMANDANT (Admin Total) ---
-    st.subheader("🔐 Espace Commandant")
-    
-    if not st.session_state.is_admin:
-        admin_input = st.text_input("Code Commandant", type="password", key="admin_code_input")
-        if st.button("Déverrouiller Admin"):
-            # Récupère le code admin depuis les secrets Streamlit (ou "AEGIS2026" par défaut)
-            correct_admin_code = st.secrets.get("ADMIN_CODE", "AEGIS2026")
-            if admin_input == correct_admin_code:
-                st.session_state.is_admin = True
-                st.success("Accès Commandant accordé !")
-                st.rerun()
-            else:
-                st.error("Code Commandant incorrect.")
-    else:
-        st.success("🟢 Mode Commandant Actif (100% Droits)")
-        if st.button("Verrouiller l'Admin"):
-            st.session_state.is_admin = False
-            st.rerun()
-
-# --- CORPS PRINCIPAL DE L'APPLICATION ---
-st.title("AEGIS-CORE — Interface Souveraine")
-
-# 1. Si le Commandant est connecté : Accès total aux réglages avancés et au noyau
-if st.session_state.is_admin:
-    st.markdown("### 🛠️ Panneau de Contrôle Avancé (Réservé au Commandant)")
-    st.info("Vous avez le contrôle total sur le système, les clés API, les logs et la configuration globale.")
-    
-    # Exemple de commande admin sécurisée
-    with st.expander("⚙️ Paramètres système et maintenance"):
-        st.write(f"Profils utilisateurs enregistrés : {len(st.session_state.user_profiles)}")
-        if st.button("Purger les profils utilisateurs"):
-            st.session_state.user_profiles = {}
-            st.success("Base des profils vidée.")
-
-# 2. Si un utilisateur classique est connecté : Personnalisation sécurisée sans risque de tout casser
-elif st.session_state.user_logged:
-    st.markdown(f"### 🎛️ Espace de Personnalisation de {st.session_state.current_user}")
-    st.write("Ici, vous pouvez personnaliser votre expérience AEGIS (choix des thèmes, préférences d'affichage) en toute sécurité.")
-    
-    # Paramètres utilisateur inoffensifs pour l'app
-    user_theme = st.selectbox("Choisir l'ambiance visuelle de votre interface :", ["Défaut (Brume cinématique)", "Mode Clair", "Mode Nuit Profond"])
-    user_notifications = st.checkbox("Activer les alertes sonores personnalisées", value=True)
-    
-    if st.button("Sauvegarder mes préférences"):
-        st.success("Préférences enregistrées avec succès !")
-
-# 3. Si personne n'est connecté : Accueil général et Chat public
-else:
-    st.warning("⚠️ Veuillez vous connecter via la barre latérale pour accéder à votre espace personnalisé ou lancer le chat.")
-    st.markdown("Bienvenue sur la version Bêta d'AEGIS-CORE. L'intelligence souveraine du peuple.")
