@@ -342,3 +342,44 @@ if prompt_input:
             st.markdown(reponse_finale)
 
         messages_actuels.append({"role": "assistant", "content": reponse_finale})
+ADMIN_CODE = "VotreCodeSecret123"
+import streamlit as st
+
+# --- INITIALISATION DE LA SESSION ADMIN ---
+if "is_admin" not in st.session_state:
+    st.session_state.is_admin = False
+
+# --- BARRE LATÉRALE : ACCÈS ADMIN DISCRET ---
+with st.sidebar:
+    st.title("AEGIS-CORE")
+    
+    # Section cachée ou discrète pour l'admin
+    if not st.session_state.is_admin:
+        with st.expander("🔐 Espace Commandant (Admin)"):
+            admin_input = st.text_input("Code d'accès", type="password")
+            if st.button("Déverrouiller"):
+                if admin_input == st.secrets.get("ADMIN_CODE", "1234"):
+                    st.session_state.is_admin = True
+                    st.success("Accès administrateur accordé !")
+                    st.rerun()
+                else:
+                    st.error("Code incorrect.")
+    else:
+        st.success("🟢 Mode Admin Actif")
+        if st.button("Verrouiller la session"):
+            st.session_state.is_admin = False
+            st.rerun()
+
+# --- AFFICHAGE CONDITIONNEL DES FONCTIONNALITÉS ---
+if st.session_state.is_admin:
+    # Tout ce qui est ici ne s'affiche QUE pour vous
+    st.markdown("### 🛠️ Panneau de Contrôle Avancé")
+    st.write("Ici, vous pouvez modifier les paramètres, voir les logs, ou changer la configuration de la matrice.")
+    # Exemple d'outil admin :
+    if st.checkbox("Activer le mode debug"):
+        st.write("Logs système en direct...")
+
+else:
+    # Ce que voit le grand public (les utilisateurs normaux)
+    st.write("Bienvenue sur AEGIS-CORE. Profitez de l'intelligence souveraine et de la matrice de prompts.")
+    
