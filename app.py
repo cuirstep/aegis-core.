@@ -342,7 +342,7 @@ if prompt_input:
             st.markdown(reponse_finale)
 
         messages_actuels.append({"role": "assistant", "content": reponse_finale})
-ADMIN_CODE = "VotreCodeSecret123"
+ADMIN_CODE = "AEGISmaster"
 import streamlit as st
 
 # --- INITIALISATION DE LA SESSION ADMIN ---
