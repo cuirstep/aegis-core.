@@ -1,67 +1,62 @@
-"""
-Module : database.py
-Projet : AEGIS-CORE — OS IA Sécurisé à profil hautes responsabilités
-Description : Gestion de la base de données SQLite locale pour l'historique des missions.
-"""
-
 import sqlite3
-from datetime import datetime
-from typing import List, Tuple, Any
+import hashlib
+import os
 
-DB_NAME = "aegis_secure.db"
+DB_FILE = "aegis_core.db"
 
-def init_db() -> None:
-    """
-    Initialise la base de données locale et crée la table 'missions_logs' 
-    si elle n'existe pas encore.
-    """
-    conn = sqlite3.connect(DB_NAME)
+def init_db():
+    """Initialise la base de données SQLite avec une table sécurisée pour les profils."""
+    conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
-    
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS missions_logs (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            timestamp TEXT NOT NULL,
-            directive_user TEXT NOT NULL,
-            aegis_response TEXT NOT NULL,
-            security_status TEXT NOT NULL
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+            username TEXT PRIMARY KEY,
+            password_hash TEXT NOT NULL,
+            salt TEXT NOT NULL,
+            config TEXT
         )
-    """)
-    
+    ''')
     conn.commit()
     conn.close()
 
-def log_interaction(directive_user: str, aegis_response: str, security_status: str) -> None:
-    """
-    Enregistre une nouvelle interaction dans la table 'missions_logs'.
-    """
-    conn = sqlite3.connect(DB_NAME)
+def hash_password(password, salt=None):
+    """Hache un mot de passe avec un sel pour la sécurité."""
+    if not salt:
+        salt = os.urandom(16).hex()
+    pwd_hash = hashlib.sha256((password + salt).encode('utf-8')).hexdigest()
+    return pwd_hash, salt
+
+def register_user(username, password):
+    """Enregistre un nouvel utilisateur avec un mot de passe haché."""
+    init_db()
+    conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
     
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    # Vérifier si l'utilisateur existe déjà
+    cursor.execute('SELECT username FROM users WHERE username = ?', (username,))
+    if cursor.fetchone():
+        conn.close()
+        return False, "Ce pseudo existe déjà."
     
-    cursor.execute("""
-        INSERT INTO missions_logs (timestamp, directive_user, aegis_response, security_status)
-        VALUES (?, ?, ?, ?)
-    """, (directive_user, aegis_response, security_status, timestamp))
-    
+    pwd_hash, salt = hash_password(password)
+    cursor.execute('INSERT INTO users (username, password_hash, salt, config) VALUES (?, ?, ?, ?)',
+                   (username, pwd_hash, salt, '{}'))
     conn.commit()
     conn.close()
+    return True, "Compte créé avec succès."
 
-def get_recent_logs(limit: int = 10) -> List[Tuple[Any, ...]]:
-    """
-    Récupère les derniers rapports de mission enregistrés.
-    """
-    conn = sqlite3.connect(DB_NAME)
+def verify_user(username, password):
+    """Vérifie les identifiants d'un utilisateur."""
+    init_db()
+    conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
-    
-    cursor.execute("""
-        SELECT id, timestamp, directive_user, aegis_response, security_status
-        FROM missions_logs
-        ORDER BY timestamp DESC
-        LIMIT ?
-    """, (limit,))
-    
-    logs = cursor.fetchall()
+    cursor.execute('SELECT password_hash, salt FROM users WHERE username = ?', (username,))
+    row = cursor.fetchone()
     conn.close()
-    return logs
+    
+    if not row:
+        return False
+    
+    stored_hash, salt = row
+    pwd_hash, _ = hash_password(password, salt)
+    return pwd_hash == stored_hash
