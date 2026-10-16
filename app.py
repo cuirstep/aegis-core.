@@ -5,7 +5,9 @@ import json
 from groq import Groq
 import google.generativeai as genai
 
-import database as db
+# Importation de nos fonctions sécurisées depuis database.py
+from database import init_db, register_user, verify_user, init_chat_db, save_user_session, load_user_sessions
+
 # --- CONFIGURATION DE LA PAGE ---
 st.set_page_config(
     page_title="AEGIS-CORE // BETA", 
@@ -13,37 +15,26 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- PERSISTANCE DES PROFILS UTILISATEURS ---
-USER_DB_FILE = "user_profiles.json"
+# Initialisation des bases de données SQLite au démarrage
+init_db()
+init_chat_db()
 
-def load_profiles():
-    if os.path.exists(USER_DB_FILE):
-        try:
-            with open(USER_DB_FILE, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except Exception:
-            return {}
-    return {}
-
-def save_profiles(profiles):
-    with open(USER_DB_FILE, "w", encoding="utf-8") as f:
-        json.dump(profiles, f, ensure_ascii=False, indent=2)
-
-# Initialisation des états globaux
-if "profiles" not in st.session_state:
-    st.session_state.profiles = load_profiles()
-
+# --- INITIALISATION DES ÉTATS GLOBAUX ---
 if "is_admin" not in st.session_state:
     st.session_state.is_admin = False
 
 if "current_user" not in st.session_state:
     st.session_state.current_user = None
 
+# Gestion des sessions de chat (chargées depuis SQLite si connecté, sinon vide)
 if "sessions" not in st.session_state:
-    st.session_state["sessions"] = {"Discussion 1": []}
+    if st.session_state.current_user:
+        st.session_state["sessions"] = load_user_sessions(st.session_state.current_user)
+    else:
+        st.session_state["sessions"] = {"Discussion 1": []}
 
 if "session_active" not in st.session_state:
-    st.session_state["session_active"] = "Discussion 1"
+    st.session_state["session_active"] = list(st.session_state["sessions"].keys())[0]
 
 # --- INJECTION CSS & ANIMATION BRUME ---
 st.markdown("""
@@ -103,19 +94,6 @@ st.markdown("""
         <source src="https://www.myinstants.com/media/sounds/metal-gear-solid-alert-sound.mp3" type="audio/mpeg">
     </audio>
 """, unsafe_allow_html=True)
-
-# --- FONCTIONS UTILITAIRES ---
-def get_base64_img(path):
-    if os.path.exists(path):
-        with open(path, "rb") as f:
-            return base64.b64encode(f.read()).decode()
-    return None
-
-def custom_icon(path, size=24):
-    b64 = get_base64_img(path)
-    if b64:
-        return f'<img src="data:image/png;base64,{b64}" width="{size}" style="vertical-align: middle; margin-right: 8px;">'
-    return ""
 
 # --- API KEYS & CONFIG ---
 gemini_key = st.secrets.get("GEMINI_API_KEY", "")
@@ -222,36 +200,214 @@ MATRICE_PROMPTS = {
     ]
 }
 
-# --- MATRICE DE PERSONNALISATION (30 THEMES x 30 PROPOSITIONS) ---
-noms_themes_perso = [
-    "Palette de Couleurs et Ambiance", "Typographie et Polices", "Taille et Echelle des Textes",
-    "Avatars et Symboles Tactiques", "Disposition et Mise en Page", "Theme des Blocs de Code",
-    "Densite d'Affichage et Spacing", "Mode Focus et Epure", "Horodatage et Metadonnees",
-    "Langue et Registre de l'IA", "Tonalite et Style de Reponse", "Longueur Max et Verbosite",
-    "Mode Resume et Synthese", "Message de Bienvenue", "Vitesse de Frappe et Streaming",
-    "Alertes Sonores et Volume", "Effets Visuels et Brume", "Raccourcis Clavier et Envoi",
-    "Historique et Incognito", "Mode Economie de Donnees", "Defilement Automatique",
-    "Niveau de Rigueur et RAG", "Format des Explications", "Gestion des Emojis",
-    "Mise en Evidence des Hypotheses", "Prompt Systeme Personnalise", "Mode Console ou Terminal",
-    "Exportation des Discussions", "Gestion des Alertes Reseau", "Comportement de Repli"
-]
-
-propositions_exemples = [
-    "Defaut Obscur", "Cyberpunk Gold", "Nuit Profonde", "Matrice Verte", "Bleu Tactique", 
-    "Rouge Alerte", "Ombre Grise", "Blanc Epure", "Neon Violet", "Ambre Retro", 
-    "Stealth Black", "Monochrome", "Solaire Ultra", "Ocean Profond", "Foret Sombre"
-]
-
-MATRICE_PERSONNALISATION = {}
-for i, nom in enumerate(noms_themes_perso):
-    cle_theme = f"Theme {i+1} : {nom}"
-    liste_props = [f"Proposition {j+1} : {propositions_exemples[j % len(propositions_exemples)]} (Mode {j+1})" for j in range(30)]
-    MATRICE_PERSONNALISATION[cle_theme] = liste_props
-
 # --- BARRE LATERALE ---
 quick_action = None
 
 with st.sidebar:
     st.subheader("Espace Membre")
     if not st.session_state.current_user:
-        tab_login, tab_register = st.tabs
+        auth_mode = st.radio("Mode", ["Connexion", "Créer un compte"], key="auth_radio")
+
+        if auth_mode == "Créer un compte":
+            new_user = st.text_input("Pseudo", key="reg_user")
+            p1 = st.text_input("Mot de passe", type="password", key="reg_p1")
+            p2 = st.text_input("Confirmez le mot de passe", type="password", key="reg_p2")
+            if st.button("Valider la création"):
+                if not new_user or not p1:
+                    st.error("Champs incomplets.")
+                elif p1 != p2:
+                    st.error("Les mots de passe ne correspondent pas.")
+                else:
+                    success, msg = register_user(new_user, p1)
+                    if success:
+                        st.success(msg)
+                    else:
+                        st.error(msg)
+        else:
+            log_user = st.text_input("Pseudo", key="log_user")
+            log_pass = st.text_input("Mot de passe", type="password", key="log_pass")
+            if st.button("Se connecter"):
+                if verify_user(log_user, log_pass):
+                    st.session_state.current_user = log_user
+                    # Charger les sessions de l'utilisateur depuis SQLite
+                    st.session_state["sessions"] = load_user_sessions(log_user)
+                    st.session_state["session_active"] = list(st.session_state["sessions"].keys())[0]
+                    st.success(f"Bienvenue {log_user} !")
+                    st.rerun()
+                else:
+                    st.error("Identifiants incorrects.")
+    else:
+        st.success(f"Connecté : **{st.session_state.current_user}**")
+        if st.button("Déconnexion"):
+            st.session_state.current_user = None
+            st.session_state["sessions"] = {"Discussion 1": []}
+            st.session_state["session_active"] = "Discussion 1"
+            st.rerun()
+
+    st.markdown("---")
+
+    # ESPACE COMMANDANT (ADMIN)
+    if not st.session_state.is_admin:
+        with st.expander("Espace Commandant"):
+            admin_code = st.text_input("Code Secret", type="password", key="admin_key")
+            if st.button("Authentification Admin"):
+                correct_admin_code = st.secrets.get("ADMIN_CODE", "AEGIS2026")
+                if admin_code == correct_admin_code:
+                    st.session_state.is_admin = True
+                    st.success("Accès Commandant activé.")
+                    st.rerun()
+                else:
+                    st.error("Code refusé.")
+    else:
+        st.info("Mode Commandant Total")
+        if st.button("Verrouiller Admin"):
+            st.session_state.is_admin = False
+            st.rerun()
+
+    st.markdown("---")
+
+    # MULTI-SESSIONS (Persistées en SQLite)
+    st.markdown("### MULTI-SESSIONS")
+    if st.button("Nouvelle discussion"):
+        new_name = f"Discussion {len(st.session_state['sessions']) + 1}"
+        st.session_state["sessions"][new_name] = []
+        st.session_state["session_active"] = new_name
+        if st.session_state.current_user:
+            save_user_session(st.session_state.current_user, new_name, [])
+        st.rerun()
+
+    session_choisie = st.selectbox("Sessions enregistrées :", list(st.session_state["sessions"].keys()), index=list(st.session_state["sessions"].keys()).index(st.session_state["session_active"]))
+    if session_choisie != st.session_state["session_active"]:
+        st.session_state["session_active"] = session_choisie
+        st.rerun()
+
+    st.markdown("---")
+
+    # MATRICE DE COMMANDES (PROMPTS)
+    st.markdown("### MATRICE DE COMMANDES")
+    theme_choisi = st.selectbox("Domaine Prompt :", list(MATRICE_PROMPTS.keys()))
+    prompt_selectionne = st.selectbox("Commande :", MATRICE_PROMPTS[theme_choisi])
+    
+    if st.button("Injecter le prompt"):
+        quick_action = prompt_selectionne
+
+# --- SYSTEM PROMPT ---
+SYSTEM_PROMPT = (
+    "Tu es AEGIS-CORE (Version Beta), un systeme d'IA souverain developpe par le Commandant. "
+    "Tu es ultra-performant, direct et rigoureux. "
+    "Si tu emets une hypothese ou une deduction, étiquette-la OBLIGATOIREMENT par '[HYPOTHESE / DEDUCTION]'."
+)
+
+# --- INTERFACE PRINCIPALE ---
+st.markdown(f"### AEGIS-CORE // {st.session_state['session_active'].upper()} (BETA)")
+st.caption(f"Domaine actif : **{theme_choisi}**")
+
+st.markdown("---")
+
+# PANNEAU ADMIN COMMANDANT
+if st.session_state.is_admin:
+    st.header("Panneau de Controle Global (Commandant)")
+    st.warning("Acces complet aux donnees, profils et diagnostics du serveur.")
+    if st.button("Reinitialiser toutes les sessions (Danger)"):
+        # Logique admin potentielle
+        st.success("Opération simulée.")
+    st.markdown("---")
+
+# --- GESTION DU CHAT ---
+messages_actuels = st.session_state["sessions"][st.session_state["session_active"]]
+
+for message in messages_actuels:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+prompt_a_traiter = None
+
+if messages_actuels:
+    dernier_index_user = -1
+    for idx, m in enumerate(reversed(messages_actuels)):
+        if m["role"] == "user":
+            dernier_index_user = len(messages_actuels) - 1 - idx
+            break
+            
+    if dernier_index_user != -1:
+        with st.expander("Modifier votre derniere directive"):
+            nouveau_texte = st.text_input("Ajustez votre consigne :", value=messages_actuels[dernier_index_user]["content"], key=f"edit_txt_{st.session_state['session_active']}")
+            if st.button("Mettre a jour et relancer", key=f"btn_edit_run_{st.session_state['session_active']}"):
+                st.session_state["sessions"][st.session_state["session_active"]] = messages_actuels[:dernier_index_user]
+                prompt_a_traiter = nouveau_texte
+                if st.session_state.current_user:
+                    save_user_session(st.session_state.current_user, st.session_state["session_active"], st.session_state["sessions"][st.session_state["session_active"]])
+                st.rerun()
+
+prompt_input = st.chat_input("Entrez votre directive, Commandant...")
+if quick_action:
+    prompt_input = quick_action
+if prompt_a_traiter:
+    prompt_input = prompt_a_traiter
+
+if prompt_input:
+    messages_actuels.append({"role": "user", "content": prompt_input})
+    with st.chat_message("user"):
+        st.markdown(prompt_input)
+
+    with st.chat_message("assistant"):
+        reponse_finale = ""
+        succes = False
+
+        if gemini_key and not succes:
+            for model_name in ["gemini-2.5-flash", "gemini-1.5-flash"]:
+                try:
+                    model = genai.GenerativeModel(model_name=model_name, system_instruction=SYSTEM_PROMPT)
+                    chat_history = [{"role": "user" if m["role"] == "user" else "model", "parts": [m["content"]]} for m in messages_actuels[:-1]]
+                    chat = model.start_chat(history=chat_history)
+                    response = chat.send_message(prompt_input, stream=True)
+
+                    def generate_fast_stream():
+                        for chunk in response:
+                            if chunk.text:
+                                for char in chunk.text:
+                                    yield char
+                                    import time
+                                    time.sleep(0.0001)
+
+                    reponse_finale = st.write_stream(generate_fast_stream())
+                    succes = True
+                    break
+                except Exception:
+                    pass
+
+        if groq_keys and not succes:
+            messages_payload = [{"role": "system", "content": SYSTEM_PROMPT}] + [{"role": m["role"], "content": m["content"]} for m in messages_actuels]
+            for g_key in groq_keys:
+                try:
+                    client = Groq(api_key=g_key)
+                    stream = client.chat.completions.create(
+                        model="openai/gpt-oss-20b", 
+                        messages=messages_payload, 
+                        stream=True
+                    )
+                    
+                    def generate_groq_fast():
+                        for chunk in stream:
+                            content = chunk.choices[0].delta.content
+                            if content:
+                                for char in content:
+                                    yield char
+                                    import time
+                                    time.sleep(0.0001)
+
+                    reponse_finale = st.write_stream(generate_groq_fast())
+                    succes = True
+                    break
+                except Exception:
+                    pass
+
+        if not succes:
+            reponse_finale = "Erreur de reseau : Les canaux distants ne repondent pas."
+            st.markdown(reponse_finale)
+
+        messages_actuels.append({"role": "assistant", "content": reponse_finale})
+        
+        # Sauvegarde automatique des messages dans SQLite si un utilisateur est connecté
+        if st.session_state.current_user:
+            save_user_session(st.session_state.current_user, st.session_state["session_active"], messages_actuels)
