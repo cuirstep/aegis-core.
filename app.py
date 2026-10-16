@@ -5,6 +5,7 @@ import json
 from groq import Groq
 import google.generativeai as genai
 
+import database as db
 # --- CONFIGURATION DE LA PAGE ---
 st.set_page_config(
     page_title="AEGIS-CORE // BETA", 
