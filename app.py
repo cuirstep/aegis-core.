@@ -2,10 +2,11 @@ import streamlit as st
 import os
 import base64
 import json
+import time
 from groq import Groq
 import google.generativeai as genai
 
-# Importation de nos fonctions sécurisées depuis database.py
+# Importation des fonctions SQLite depuis database.py
 from database import init_db, register_user, verify_user, init_chat_db, save_user_session, load_user_sessions
 
 # --- CONFIGURATION DE LA PAGE ---
@@ -26,74 +27,72 @@ if "is_admin" not in st.session_state:
 if "current_user" not in st.session_state:
     st.session_state.current_user = None
 
-# Gestion des sessions de chat (chargées depuis SQLite si connecté, sinon vide)
+# Synchronisation des sessions avec SQLite
 if "sessions" not in st.session_state:
     if st.session_state.current_user:
         st.session_state["sessions"] = load_user_sessions(st.session_state.current_user)
     else:
         st.session_state["sessions"] = {"Discussion 1": []}
 
-if "session_active" not in st.session_state:
+if "session_active" not in st.session_state or st.session_state["session_active"] not in st.session_state["sessions"]:
     st.session_state["session_active"] = list(st.session_state["sessions"].keys())[0]
 
-# --- INJECTION CSS & ANIMATION BRUME ---
-st.markdown("""
-    <style>
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    
-    .stApp {
-        background-color: #0e1117;
-        color: #ffffff;
-    }
-    
-    [data-testid="stChatMessageAvatarUser"], [data-testid="stChatMessageAvatarAssistant"] {
-        display: none !important;
-    }
-    
-    @keyframes brumeFadeOut {
-        0% { opacity: 1; filter: blur(0px); visibility: visible; }
-        70% { opacity: 1; filter: blur(3px); visibility: visible; }
-        100% { opacity: 0; filter: blur(15px); visibility: hidden; pointer-events: none; }
-    }
+# --- INJECTION CSS & ANIMATION BRUME (Jouée une seule fois) ---
+if "intro_played" not in st.session_state:
+    st.session_state["intro_played"] = True
+    st.markdown("""
+        <style>
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        
+        .stApp {
+            background-color: #0e1117;
+            color: #ffffff;
+        }
+        
+        [data-testid="stChatMessageAvatarUser"], [data-testid="stChatMessageAvatarAssistant"] {
+            display: none !important;
+        }
+        
+        @keyframes brumeFadeOut {
+            0% { opacity: 1; filter: blur(0px); visibility: visible; }
+            70% { opacity: 1; filter: blur(3px); visibility: visible; }
+            100% { opacity: 0; filter: blur(15px); visibility: hidden; pointer-events: none; }
+        }
 
-    .intro-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background-color: #000000;
-        color: #ffffff;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        z-index: 999999;
-        animation: brumeFadeOut 2.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-        font-family: monospace;
-        letter-spacing: 8px;
-        font-size: 3em;
-        font-weight: bold;
-    }
-    
-    .intro-sub {
-        font-size: 0.35em;
-        letter-spacing: 4px;
-        color: #888888;
-        margin-top: 10px;
-    }
-    </style>
+        .intro-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #000000;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 999999;
+            animation: brumeFadeOut 2.0s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            font-family: monospace;
+            letter-spacing: 8px;
+            font-size: 3em;
+            font-weight: bold;
+        }
+        
+        .intro-sub {
+            font-size: 0.35em;
+            letter-spacing: 4px;
+            color: #888888;
+            margin-top: 10px;
+        }
+        </style>
 
-    <div class="intro-overlay">
-        AEGIS-CORE
-        <div class="intro-sub">// PROTOCOLE BETA INITIALISE //</div>
-    </div>
-    
-    <audio autoplay style="display:none;">
-        <source src="https://www.myinstants.com/media/sounds/metal-gear-solid-alert-sound.mp3" type="audio/mpeg">
-    </audio>
-""", unsafe_allow_html=True)
+        <div class="intro-overlay">
+            AEGIS-CORE
+            <div class="intro-sub">// PROTOCOLE BETA INITIALISE //</div>
+        </div>
+    """, unsafe_allow_html=True)
 
 # --- API KEYS & CONFIG ---
 gemini_key = st.secrets.get("GEMINI_API_KEY", "")
@@ -111,7 +110,7 @@ if gemini_key:
     except Exception:
         pass
 
-# --- MATRICE PROMPTS (20 THEMES PROMPT) ---
+# --- MATRICE PROMPTS (20 DOMAINES) ---
 MATRICE_PROMPTS = {
     "Pedagogie, Quiz & Resumes": [
         "Genere un Quiz interactif de 5 questions a choix multiples base sur notre derniere discussion.",
@@ -229,7 +228,6 @@ with st.sidebar:
             if st.button("Se connecter"):
                 if verify_user(log_user, log_pass):
                     st.session_state.current_user = log_user
-                    # Charger les sessions de l'utilisateur depuis SQLite
                     st.session_state["sessions"] = load_user_sessions(log_user)
                     st.session_state["session_active"] = list(st.session_state["sessions"].keys())[0]
                     st.success(f"Bienvenue {log_user} !")
@@ -276,14 +274,17 @@ with st.sidebar:
             save_user_session(st.session_state.current_user, new_name, [])
         st.rerun()
 
-    session_choisie = st.selectbox("Sessions enregistrées :", list(st.session_state["sessions"].keys()), index=list(st.session_state["sessions"].keys()).index(st.session_state["session_active"]))
+    session_keys = list(st.session_state["sessions"].keys())
+    session_index = session_keys.index(st.session_state["session_active"]) if st.session_state["session_active"] in session_keys else 0
+    session_choisie = st.selectbox("Sessions enregistrées :", session_keys, index=session_index)
+    
     if session_choisie != st.session_state["session_active"]:
         st.session_state["session_active"] = session_choisie
         st.rerun()
 
     st.markdown("---")
 
-    # MATRICE DE COMMANDES (PROMPTS)
+    # MATRICE DE COMMANDES
     st.markdown("### MATRICE DE COMMANDES")
     theme_choisi = st.selectbox("Domaine Prompt :", list(MATRICE_PROMPTS.keys()))
     prompt_selectionne = st.selectbox("Commande :", MATRICE_PROMPTS[theme_choisi])
@@ -309,11 +310,10 @@ if st.session_state.is_admin:
     st.header("Panneau de Controle Global (Commandant)")
     st.warning("Acces complet aux donnees, profils et diagnostics du serveur.")
     if st.button("Reinitialiser toutes les sessions (Danger)"):
-        # Logique admin potentielle
         st.success("Opération simulée.")
     st.markdown("---")
 
-# --- GESTION DU CHAT ---
+# --- GESTION DU CHAT & PERSISTANCE ---
 messages_actuels = st.session_state["sessions"][st.session_state["session_active"]]
 
 for message in messages_actuels:
@@ -354,21 +354,22 @@ if prompt_input:
         reponse_finale = ""
         succes = False
 
+        # Tronquature intelligente du contexte (Garder uniquement les 10 derniers messages pour éviter la saturation de tokens)
+        contexte_limite = messages_actuels[-10:]
+
+        # TENTATIVE VIA GEMINI
         if gemini_key and not succes:
-            for model_name in ["gemini-2.5-flash", "gemini-1.5-flash"]:
+            for model_name in ["gemini-1.5-flash", "gemini-1.5-pro"]:
                 try:
                     model = genai.GenerativeModel(model_name=model_name, system_instruction=SYSTEM_PROMPT)
-                    chat_history = [{"role": "user" if m["role"] == "user" else "model", "parts": [m["content"]]} for m in messages_actuels[:-1]]
+                    chat_history = [{"role": "user" if m["role"] == "user" else "model", "parts": [m["content"]]} for m in contexte_limite[:-1]]
                     chat = model.start_chat(history=chat_history)
                     response = chat.send_message(prompt_input, stream=True)
 
                     def generate_fast_stream():
                         for chunk in response:
                             if chunk.text:
-                                for char in chunk.text:
-                                    yield char
-                                    import time
-                                    time.sleep(0.0001)
+                                yield chunk.text
 
                     reponse_finale = st.write_stream(generate_fast_stream())
                     succes = True
@@ -376,13 +377,14 @@ if prompt_input:
                 except Exception:
                     pass
 
+        # FALLBACK VIA GROQ
         if groq_keys and not succes:
-            messages_payload = [{"role": "system", "content": SYSTEM_PROMPT}] + [{"role": m["role"], "content": m["content"]} for m in messages_actuels]
+            messages_payload = [{"role": "system", "content": SYSTEM_PROMPT}] + [{"role": m["role"], "content": m["content"]} for m in contexte_limite]
             for g_key in groq_keys:
                 try:
                     client = Groq(api_key=g_key)
                     stream = client.chat.completions.create(
-                        model="openai/gpt-oss-20b", 
+                        model="llama-3.3-70b-versatile", 
                         messages=messages_payload, 
                         stream=True
                     )
@@ -391,10 +393,7 @@ if prompt_input:
                         for chunk in stream:
                             content = chunk.choices[0].delta.content
                             if content:
-                                for char in content:
-                                    yield char
-                                    import time
-                                    time.sleep(0.0001)
+                                yield content
 
                     reponse_finale = st.write_stream(generate_groq_fast())
                     succes = True
@@ -403,11 +402,11 @@ if prompt_input:
                     pass
 
         if not succes:
-            reponse_finale = "Erreur de reseau : Les canaux distants ne repondent pas."
+            reponse_finale = "Erreur de réseau : Les canaux distants (Gemini & Groq) ne répondent pas."
             st.markdown(reponse_finale)
 
         messages_actuels.append({"role": "assistant", "content": reponse_finale})
         
-        # Sauvegarde automatique des messages dans SQLite si un utilisateur est connecté
+        # Sauvegarde automatique dans SQLite
         if st.session_state.current_user:
             save_user_session(st.session_state.current_user, st.session_state["session_active"], messages_actuels)
