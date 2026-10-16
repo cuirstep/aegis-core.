@@ -1,6 +1,7 @@
 import sqlite3
 import hashlib
 import os
+import json
 
 DB_FILE = "aegis_core.db"
 
@@ -60,3 +61,64 @@ def verify_user(username, password):
     stored_hash, salt = row
     pwd_hash, _ = hash_password(password, salt)
     return pwd_hash == stored_hash
+
+def init_chat_db():
+    """Initialise la table pour stocker les messages de chat."""
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS chat_sessions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT,
+            session_name TEXT,
+            messages TEXT,
+            FOREIGN KEY (username) REFERENCES users (username)
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+def save_user_session(username, session_name, messages_list):
+    """Sauvegarde ou met à jour les messages d'une session pour un utilisateur."""
+    init_chat_db()
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    
+    # Convertir la liste des messages en format JSON texte
+    messages_json = json.dumps(messages_list, ensure_ascii=False)
+    
+    # Vérifier si la session existe déjà pour cet utilisateur
+    cursor.execute('SELECT id FROM chat_sessions WHERE username = ? AND session_name = ?', (username, session_name))
+    row = cursor.fetchone()
+    
+    if row:
+        cursor.execute('UPDATE chat_sessions SET messages = ? WHERE username = ? AND session_name = ?', 
+                       (messages_json, username, session_name))
+    else:
+        cursor.execute('INSERT INTO chat_sessions (username, session_name, messages) VALUES (?, ?, ?)', 
+                       (messages_json, username, session_name))
+        
+    conn.commit()
+    conn.close()
+
+def load_user_sessions(username):
+    """Charge toutes les sessions de chat d'un utilisateur depuis SQLite."""
+    init_chat_db()
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute('SELECT session_name, messages FROM chat_sessions WHERE username = ?', (username,))
+    rows = cursor.fetchall()
+    conn.close()
+    
+    sessions = {}
+    for session_name, messages_json in rows:
+        try:
+            sessions[session_name] = json.loads(messages_json)
+        except Exception:
+            sessions[session_name] = []
+            
+    # Si l'utilisateur n'a aucune session, on lui en crée une par défaut
+    if not sessions:
+        sessions["Discussion 1"] = []
+        
+    return sessions
