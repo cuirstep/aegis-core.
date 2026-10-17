@@ -67,14 +67,17 @@ if "sessions" not in st.session_state:
 if "session_active" not in st.session_state or st.session_state["session_active"] not in st.session_state["sessions"]:
     st.session_state["session_active"] = list(st.session_state["sessions"].keys())[0]
 
+# --- INJECTION CSS & ANIMATION DE DÉMARRAGE ---
 st.markdown("""
     <style>
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
+    
     .stApp {
         background-color: #0e1117;
         color: #ffffff;
     }
+    
     [data-testid="stChatMessageAvatarUser"], 
     [data-testid="stChatMessageAvatarAssistant"],
     .stChatMessageAvatar,
@@ -87,28 +90,96 @@ st.markdown("""
         margin: 0px !important;
         padding: 0px !important;
     }
+    
+    @keyframes brumeFadeOut {
+        0% { opacity: 1; filter: blur(0px); visibility: visible; }
+        70% { opacity: 1; filter: blur(3px); visibility: visible; }
+        100% { opacity: 0; filter: blur(15px); visibility: hidden; pointer-events: none; }
+    }
+
+    .intro-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: #000000;
+        color: #ffffff;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 999999;
+        animation: brumeFadeOut 2.0s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        font-family: monospace;
+        letter-spacing: 8px;
+        font-size: 3em;
+        font-weight: bold;
+    }
+    
+    .intro-sub {
+        font-size: 0.35em;
+        letter-spacing: 4px;
+        color: #888888;
+        margin-top: 10px;
+    }
     </style>
+
+    <div class="intro-overlay">
+        AEGIS-CORE
+        <div class="intro-sub">// PROTOCOLE BETA INITIALISE //</div>
+    </div>
 """, unsafe_allow_html=True)
 
+# --- MATRICE PROMPTS (RESTAURÉE INTÉGRALEMENT) ---
 MATRICE_PROMPTS = {
     "Pedagogie, Quiz & Resumes": [
         "Genere un Quiz interactif de 5 questions a choix multiples base sur notre derniere discussion.",
         "Redige une fiche de synthese pedagogique claire et structuree du projet en cours.",
         "Concois un plan de formation étape par étape pour maîtriser ce sujet de A à Z.",
-        "Genere une fiche de revision rapide sous forme de carte mentale textuelle."
+        "Genere une fiche de revision rapide sous forme de carte mentale textuelle.",
+        "Explique ce concept avec une analogie simple issue du monde réel.",
+        "Crée un exercice pratique guidé avec des indices progressifs.",
+        "Fais un résumé exécutif en 3 points clés percutants.",
+        "Identifie les 3 erreurs les plus fréquentes sur ce sujet et comment les éviter.",
+        "Prépare une liste de questions/réponses (FAQ) orientée mise en pratique.",
+        "Structure un plan de cours complet pour un séminaire de formation de 2 heures."
     ],
     "Developpement & Code": [
         "Donne-moi une structure propre et modulaire pour un projet Python professionnel.",
         "Optimise un algorithme Python pour reduire la complexite temporelle.",
-        "Concois une architecture REST API scalable avec FastAPI."
+        "Concois une architecture REST API scalable avec FastAPI.",
+        "Écris les tests unitaires complets (pytest) pour ce module.",
+        "Réalise une revue de code rigoureuse en signalant les failles de sécurité potentielles.",
+        "Génère un script d'automatisation robuste avec gestion des exceptions et logs.",
+        "Propose une modélisation de base de données relationnelle optimisée.",
+        "Conçois un pipeline de traitement de données asynchrone performant.",
+        "Rédige la documentation technique complète au format Markdown.",
+        "Implémente un système de cache intelligent pour alléger les requêtes."
     ],
     "Cybersecurite & Protocoles": [
         "Redige une politique de securite des systemes d'information.",
-        "Explique la mise en place d'une architecture Zero Trust."
+        "Explique la mise en place d'une architecture Zero Trust.",
+        "Réalise une analyse de risques selon la méthodologie EBIOS / ISO 27005.",
+        "Établis un plan de réponse à incident (Incident Response Plan) détaillé.",
+        "Vérifie la conformité des configurations réseau face aux standards actuels.",
+        "Simule une phase de modélisation des menaces (Threat Modeling) STRIDE.",
+        "Rédige les directives de durcissement (Hardening) pour les serveurs Linux.",
+        "Mets en place une stratégie de gestion des correctifs (Patch Management).",
+        "Audite ce script pour détecter d'éventuelles vulnérabilités d'injection ou fuites de données.",
+        "Conçois une procédure d'authentification forte multi-facteurs (MFA)."
     ],
     "Ingenierie des IA & Prompts": [
         "Concois un System Prompt robuste pour garantir le respect strict des consignes.",
-        "Propose une architecture RAG avec Vector DB."
+        "Propose une architecture RAG avec Vector DB.",
+        "Optimise ce prompt pour réduire les hallucinations du LLM.",
+        "Mets en place une stratégie de Fine-Tuning efficace sur domaine spécifique.",
+        "Conçois un système d'agents autonomes collaboratifs pour cette tâche.",
+        "Établis un benchmark comparatif des performances de différents modèles.",
+        "Rédige un mécanisme de chaînage de prompts (Prompt Chaining) complexe.",
+        "Implémente une couche de garde-fous (Guardrails) pour filtrer les sorties toxiques.",
+        "Optimise la gestion de la fenêtre de contexte pour un traitement longue durée.",
+        "Crée un système de rétroaction (Feedback Loop) automatisé pour améliorer les réponses."
     ]
 }
 
@@ -276,7 +347,7 @@ if prompt_input:
 
         audio_content = text_to_speech_elevenlabs(reponse_finale, langue=langue_courante)
         if audio_content:
-            st.audio(audio_content, format='audio/mpeg', autoplay=True)
+            st.audio(io.BytesIO(audio_content), format='audio/mpeg', autoplay=True)
 
         if st.session_state.current_user:
             save_user_session(st.session_state.current_user, st.session_state["session_active"], messages_actuels)
