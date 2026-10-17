@@ -281,21 +281,21 @@ if prompt_input:
 
         messages_actuels.append({"role": "assistant", "content": reponse_finale})
 
-        reponse_finale = st.write_stream(generate_stream())
+     reponse_finale = st.write_stream(generate_stream())
 
     messages_actuels.append({"role": "assistant", "content": reponse_finale})
     
-    # --- AJOUTER ICI : SYNTHÈSE VOCALE (TEXT-TO-SPEECH) ---
-    try:
-        tts = gTTS(text=reponse_finale, lang='fr', slow=False)
-        audio_bytes = io.BytesIO()
-        tts.write_to_fp(audio_bytes)
-        audio_bytes.seek(0)
-        st.audio(audio_bytes, format='audio/mp3')
-    except Exception as e:
-        st.caption(f"Audio non disponible : {e}")
+    # --- SYNTHÈSE VOCALE INSTANTANÉE (NAVIGATEUR) ---
+    safe_text = reponse_finale.replace('"', '\\"').replace('\n', ' ')
+    st.markdown(f'''
+        <button onclick="
+            const utterance = new SpeechSynthesisUtterance('{safe_text}');
+            utterance.lang = 'fr-FR';
+            window.speechSynthesis.speak(utterance);
+        " style="background: transparent; border: 1px solid #333; color: #aaa; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8em; margin-top: 5px;">
+            🔊 Écouter
+        </button>
+    ''', unsafe_allow_html=True)
 
     if st.session_state.current_user:
         save_user_session(st.session_state.current_user, st.session_state["session_active"], messages_actuels)
-        if st.session_state.current_user:
-            save_user_session(st.session_state.current_user, st.session_state["session_active"], messages_actuels)
