@@ -4,7 +4,6 @@ import json
 import streamlit as st
 
 def route_and_generate(*args, **kwargs):
-    # Récupération de la clé Groq depuis les secrets Streamlit
     groq_api_key = ""
     try:
         groq_api_key = st.secrets.get("GROQ_API_KEY_1", "")
@@ -15,6 +14,12 @@ def route_and_generate(*args, **kwargs):
         groq_api_key = os.environ.get("GROQ_API_KEY_1", os.environ.get("GROQ_API_KEY", ""))
 
     prompt = kwargs.get("prompt", args[0] if args else "")
+    if prompt is None:
+        prompt = ""
+    prompt = str(prompt).strip()
+    if not prompt:
+        prompt = "Bonjour"
+
     system_prompt = kwargs.get("system_prompt", "")
     history = kwargs.get("history", [])
     model = kwargs.get("model", "llama-3.1-8b-instant")
@@ -24,10 +29,14 @@ def route_and_generate(*args, **kwargs):
     
     messages = []
     if system_prompt:
-        messages.append({"role": "system", "content": system_prompt})
+        messages.append({"role": "system", "content": str(system_prompt)})
     
+    # Nettoyage et filtrage de l'historique pour éviter les contenus vides
     for msg in history:
-        messages.append(msg)
+        if isinstance(msg, dict) and "role" in msg and "content" in msg:
+            content = msg.get("content")
+            if content is not None and str(content).strip():
+                messages.append({"role": msg["role"], "content": str(content)})
         
     messages.append({"role": "user", "content": prompt})
 
