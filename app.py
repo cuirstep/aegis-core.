@@ -6,7 +6,43 @@ import base64
 import json
 import time
 from llm_router import route_and_generate
+import requests
+import io
 
+def text_to_speech_elevenlabs(text, langue="fr"):
+    api_key = st.secrets.get("ELEVENLABS_API_KEY", "")
+    if not api_key:
+        return None
+        
+    voix_par_langue = {
+        "fr": "xclXfpLYbMIBNgiHTm8S",
+        "en": "DODLEQrClDo8wCz460ld",
+        "es": "U9TSK9KHMlMU2qkeXlQP",
+        "ar": "Ywuz3KyW2N5pqKNpwcCL",
+        "pt": "IKpiSijWzlhOL6uX83EH"
+    }
+    
+    voice_id = voix_par_langue.get(langue, "xclXfpLYbMIBNgiHTm8S")
+    
+    url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
+    headers = {
+        "Accept": "audio/mpeg",
+        "Content-Type": "application/json",
+        "xi-api-key": api_key
+    }
+    data = {
+        "text": text,
+        "model_id": "eleven_multilingual_v2",
+        "voice_settings": {"stability": 0.5, "similarity_boost": 0.75}
+    }
+    try:
+        response = requests.post(url, json=data, headers=headers)
+        if response.status_code == 200:
+            return response.content
+    except Exception:
+        pass
+    return None
+    
 # Importation des fonctions SQLite depuis database.py
 from database import init_db, register_user, verify_user, init_chat_db, save_user_session, load_user_sessions
 
