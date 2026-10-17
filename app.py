@@ -377,42 +377,6 @@ if prompt_input:
                 except Exception as e:
                     erreurs_detectees.append(f"Erreur Gemini ({model_name}) : {e}")
 
-        # 2. FALLBACK VIA GROQ
+        # 2. FALLBACK VIA GROQ (Utilisation du modèle actif llama-3.1-8b-instant et llama-3.3-70b-versatile)
         if groq_keys and not succes:
-            messages_payload = [{"role": "system", "content": SYSTEM_PROMPT}] + [{"role": m["role"], "content": m["content"]} for m in contexte_limite]
-            for idx_key, g_key in enumerate(groq_keys):
-                try:
-                    client = Groq(api_key=g_key)
-                    stream = client.chat.completions.create(
-                        model="llama-3.3-70b-versatile", 
-                        messages=messages_payload, 
-                        stream=True
-                    )
-                    
-                    def generate_groq_fast():
-                        for chunk in stream:
-                            content = chunk.choices[0].delta.content
-                            if content:
-                                yield content
-
-                    reponse_finale = st.write_stream(generate_groq_fast())
-                    succes = True
-                    break
-                except Exception as e:
-                    erreurs_detectees.append(f"Erreur Groq (Clé #{idx_key + 1}) : {e}")
-
-        # 3. GESTION DES ERREURS
-        if not succes:
-            reponse_finale = "Erreur de réseau : Les canaux distants (Gemini & Groq) ne répondent pas."
-            st.error(reponse_finale)
-            
-            with st.expander("Diagnostic technique des erreurs API"):
-                if not gemini_key and not groq_keys:
-                    st.warning("Aucune clé API détectée. Vérifiez votre fichier .streamlit/secrets.toml.")
-                for err in erreurs_detectees:
-                    st.code(err, language="bash")
-
-        messages_actuels.append({"role": "assistant", "content": reponse_finale})
-        
-        if st.session_state.current_user:
-            save_user_session(st.session_state.current_user, st.session_state["session_active"], messages_actuels)
+            messages_payload = [{"role": "system", "content": SYSTEM_PROMPT}] + [{"role": m["role"], "content": m["content"]} for m in contexte_limite
