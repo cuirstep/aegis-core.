@@ -22,8 +22,8 @@ def route_and_generate(*args, **kwargs):
 
     system_prompt = kwargs.get("system_prompt", "")
     history = kwargs.get("history", [])
-    # Modèle actif et recommandé par Groq
-    model = kwargs.get("model", "llama-3.1-8b-instant")
+    # Utilisation d'un modèle actif et performant sur Groq
+    model = kwargs.get("model", "llama-3.3-70b-specdec")
     
     if history is None:
         history = []
