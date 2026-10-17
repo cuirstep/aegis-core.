@@ -4,14 +4,28 @@ import json
 import streamlit as st
 
 def route_and_generate(*args, **kwargs):
-    groq_api_key = ""
-    try:
-        groq_api_key = st.secrets.get("GROQ_API_KEY_1", "")
-    except Exception:
-        pass
-    
-    if not groq_api_key:
-        groq_api_key = os.environ.get("GROQ_API_KEY_1", os.environ.get("GROQ_API_KEY", ""))
+    # Récupération de toutes les clés disponibles (1 à 5)
+    keys = []
+    for i in range(1, 6):
+        try:
+            k = st.secrets.get(f"GROQ_API_KEY_{i}", "")
+            if k:
+                keys.append(k)
+        except Exception:
+            pass
+        
+        env_k = os.environ.get(f"GROQ_API_KEY_{i}", "")
+        if env_k and env_k not in keys:
+            keys.append(env_k)
+            
+    # Fallback clé unique si aucune numérotée n'est trouvée
+    single_key = os.environ.get("GROQ_API_KEY", "")
+    if single_key and single_key not in keys:
+        keys.append(single_key)
+        
+    if not keys:
+        yield "Erreur : Aucune clé API Groq n'a été trouvée dans vos secrets Streamlit."
+        return
 
     prompt = kwargs.get("prompt", args[0] if args else "")
     if prompt is None:
@@ -22,8 +36,13 @@ def route_and_generate(*args, **kwargs):
 
     system_prompt = kwargs.get("system_prompt", "")
     history = kwargs.get("history", [])
-    # Utilisation du modèle de production stable et actif sur Groq
-    model = kwargs.get("model", "llama-3.3-70b-versatile")
+    
+    # Liste des modèles valides à tester en cascade
+    models_to_try = [
+        kwargs.get("model", "llama-3.1-8b-instant"),
+        "openai/gpt-oss-20b",
+        "llama-3.3-70b-versatile"
+    ]
     
     if history is None:
         history = []
@@ -41,19 +60,35 @@ def route_and_generate(*args, **kwargs):
     messages.append({"role": "user", "content": prompt})
 
     url = "https://api.groq.com/openai/v1/chat/completions"
-    headers = {
-        "Authorization": f"Bearer {groq_api_key}",
-        "Content-Type": "application/json"
-    }
-    data = {
-        "model": model,
-        "messages": messages,
-        "stream": True
-    }
     
-    response = requests.post(url, json=data, headers=headers, stream=True)
-    if response.status_code != 200:
-        yield f"Erreur API Groq: {response.status_code} - {response.text}"
+    success = False
+    response = None
+    
+    # Boucle de secours croisée (Clés x Modèles)
+    for key in keys:
+        headers = {
+            "Authorization": f"Bearer {key}",
+            "Content-Type": "application/json"
+        }
+        for model in models_to_try:
+            data = {
+                "model": model,
+                "messages": messages,
+                "stream": True
+            }
+            try:
+                resp = requests.post(url, json=data, headers=headers, stream=True, timeout=10)
+                if resp.status_code == 200:
+                    response = resp
+                    success = True
+                    break
+            except Exception:
+                continue
+        if success:
+            break
+
+    if not success or response is None:
+        yield "Erreur API Groq : Toutes les clés et tous les modèles ont échoué. Vérifiez vos secrets."
         return
 
     for line in response.iter_lines():
