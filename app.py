@@ -337,15 +337,8 @@ if prompt_input:
         contexte_limite = messages_actuels[-10:]
         
         # Utilisation du routeur centralisé (llm_router.py)
-        def generate_stream():
-            for chunk_text in route_and_generate(
-                prompt=prompt_input,
-                system_prompt=SYSTEM_PROMPT,
-                provider="auto",
-                history=contexte_limite
-            ):
-                yield chunk_text
+     messages_actuels = st.session_state["sessions"][st.session_state["session_active"]]
 
-        reponse_finale = st.write_stream(generate_stream())
-
-        messages
+for message in messages_actuels:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
