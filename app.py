@@ -95,45 +95,7 @@ st.markdown("""
         margin: 0px !important;
         padding: 0px !important;
     }
-    
-    @keyframes brumeFadeOut {
-        0% { opacity: 1; filter: blur(0px); visibility: visible; }
-        70% { opacity: 1; filter: blur(3px); visibility: visible; }
-        100% { opacity: 0; filter: blur(15px); visibility: hidden; pointer-events: none; }
-    }
-
-    .intro-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background-color: #000000;
-        color: #ffffff;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        z-index: 999999;
-        animation: brumeFadeOut 2.0s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-        font-family: monospace;
-        letter-spacing: 8px;
-        font-size: 3em;
-        font-weight: bold;
-    }
-    
-    .intro-sub {
-        font-size: 0.35em;
-        letter-spacing: 4px;
-        color: #888888;
-        margin-top: 10px;
-    }
     </style>
-
-    <div class="intro-overlay">
-        AEGIS-CORE
-        <div class="intro-sub">// PROTOCOLE BETA INITIALISE //</div>
-    </div>
 """, unsafe_allow_html=True)
 
 # --- MATRICE PROMPTS ---
@@ -219,4 +181,103 @@ with st.sidebar:
         st.info("Mode Commandant Total")
         if st.button("Verrouiller Admin"):
             st.session_state.is_admin = False
-            st.rer
+            st.rerun()
+
+    st.markdown("---")
+
+    st.markdown("### MULTI-SESSIONS")
+    if st.button("Nouvelle discussion"):
+        new_name = f"Discussion {len(st.session_state['sessions']) + 1}"
+        st.session_state["sessions"][new_name] = []
+        st.session_state["session_active"] = new_name
+        if st.session_state.current_user:
+            save_user_session(st.session_state.current_user, new_name, [])
+        st.rerun()
+
+    session_keys = list(st.session_state["sessions"].keys())
+    session_index = session_keys.index(st.session_state["session_active"]) if st.session_state["session_active"] in session_keys else 0
+    session_choisie = st.selectbox("Sessions enregistrées :", session_keys, index=session_index)
+    
+    if session_choisie != st.session_state["session_active"]:
+        st.session_state["session_active"] = session_choisie
+        st.rerun()
+
+    st.markdown("---")
+
+    st.markdown("### MATRICE DE COMMANDES")
+    theme_choisi = st.selectbox("Domaine Prompt :", list(MATRICE_PROMPTS.keys()))
+    prompt_selectionne = st.selectbox("Commande :", MATRICE_PROMPTS[theme_choisi])
+    
+    if st.button("Injecter le prompt"):
+        quick_action = prompt_selectionne
+
+# --- SYSTEM PROMPT ---
+SYSTEM_PROMPT = (
+    "Tu es AEGIS-CORE (Version Beta), un systeme d'IA souverain developpé par le Commandant. "
+    "Tu es ultra-performant, direct, chaleureux et rigoureux. Quand on te salue, réponds de manière courtoise et professionnelle. "
+    "Si tu emets une hypothese ou une deduction, étiquette-la OBLIGATOIREMENT par '[HYPOTHESE / DEDUCTION]'."
+)
+
+# --- INTERFACE PRINCIPALE ---
+st.markdown(f"### AEGIS-CORE // {st.session_state['session_active'].upper()} (BETA)")
+st.caption(f"Domaine actif : **{theme_choisi}**")
+st.markdown("---")
+
+# --- GESTION DU CHAT & PERSISTANCE ---
+messages_actuels = st.session_state["sessions"][st.session_state["session_active"]]
+
+for message in messages_actuels:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+prompt_a_traiter = None
+
+if messages_actuels:
+    dernier_index_user = -1
+    for idx, m in enumerate(reversed(messages_actuels)):
+        if m["role"] == "user":
+            dernier_index_user = len(messages_actuels) - 1 - idx
+            break
+            
+    if dernier_index_user != -1:
+        with st.expander("Modifier votre derniere directive"):
+            nouveau_texte = st.text_input("Ajustez votre consigne :", value=messages_actuels[dernier_index_user]["content"], key=f"edit_txt_{st.session_state['session_active']}")
+            if st.button("Mettre a jour et relancer", key=f"btn_edit_run_{st.session_state['session_active']}"):
+                st.session_state["sessions"][st.session_state["session_active"]] = messages_actuels[:dernier_index_user]
+                prompt_a_traiter = nouveau_texte
+                if st.session_state.current_user:
+                    save_user_session(st.session_state.current_user, st.session_state["session_active"], st.session_state["sessions"][st.session_state["session_active"]])
+                st.rerun()
+
+prompt_input = st.chat_input("Entrez votre directive, Commandant...")
+if quick_action:
+    prompt_input = quick_action
+if prompt_a_traiter:
+    prompt_input = prompt_a_traiter
+
+if prompt_input:
+    messages_actuels.append({"role": "user", "content": prompt_input})
+    with st.chat_message("user"):
+        st.markdown(prompt_input)
+
+    with st.chat_message("assistant"):
+        contexte_limite = messages_actuels[-10:]
+        
+        def generate_stream():
+            for chunk_text in route_and_generate(
+                prompt=prompt_input,
+                system_prompt=SYSTEM_PROMPT,
+                provider="auto",
+                history=contexte_limite
+            ):
+                yield chunk_text
+
+        # --- EFFET VISUEL : CERCLE ANIMÉ STYLE DISCORD ---
+        st.markdown("""
+            <style>
+            .discord-speaking-ring {
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
+                border: 3px solid #00ff66;
+                box-shadow: 0 0 10px #00b
