@@ -21,7 +21,7 @@ def route_and_generate(prompt, system_prompt="", provider="auto", model_name="",
         if groq_key:
             try:
                 client = Groq(api_key=groq_key)
-                m_name = model_name if model_name else "llama3-8b-8192"
+               m_name = model_name if model_name else "llama-3.1-8b-instant"
                 messages_payload = [{"role": "system", "content": system_prompt}] + valid_history
                 
                 stream = client.chat.completions.create(
