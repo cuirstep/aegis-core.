@@ -311,22 +311,7 @@ if prompt_input:
             ):
                 yield chunk_text
 
-        reponse_finale = st.write_stream(generate_stream())
-
-        messages_actuels.append({"role": "assistant", "content": reponse_finale})
-with st.chat_message("assistant"):
-        contexte_limite = messages_actuels[-10:]
-        
-        def generate_stream():
-            for chunk_text in route_and_generate(
-                prompt=prompt_input,
-                system_prompt=SYSTEM_PROMPT,
-                provider="auto",
-                history=contexte_limite
-            ):
-                yield chunk_text
-
-        # --- EFFET VISUEL : CERCLE ANIMÉ STYLE DISCORD (Vert et Bleu) ---
+        # --- EFFET VISUEL : CERCLE ANIMÉ STYLE DISCORD ---
         st.markdown("""
             <style>
             .discord-speaking-ring {
@@ -367,7 +352,7 @@ with st.chat_message("assistant"):
 
         audio_content = text_to_speech_elevenlabs(reponse_finale, langue=langue_courante)
         if audio_content:
-            st.audio(io.BytesIO(audio_content), format='audio/mpeg', autoplay=True)
+            st.audio(audio_content, format='audio/mpeg', autoplay=True)
 
         if st.session_state.current_user:
             save_user_session(st.session_state.current_user, st.session_state["session_active"], messages_actuels)
