@@ -94,58 +94,21 @@ if "intro_played" not in st.session_state:
         </div>
     """, unsafe_allow_html=True)
 
-# 1. TENTATIVE VIA GEMINI
-        if gemini_key and not succes:
-            for model_name in ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"]:
-                try:
-                    model = genai.GenerativeModel(model_name=model_name, system_instruction=SYSTEM_PROMPT)
-                    chat_history = [{"role": "user" if m["role"] == "user" else "model", "parts": [m["content"]]} for m in contexte_limite[:-1]]
-                    chat = model.start_chat(history=chat_history)
-                    response = chat.send_message(prompt_input, stream=True)
+# --- API KEYS & CONFIG ---
+gemini_key = st.secrets.get("GEMINI_API_KEY", "")
+groq_keys = []
+for i in range(1, 6):
+    key = st.secrets.get(f"GROQ_API_KEY_{i}", "")
+    if not key and i == 1:
+        key = st.secrets.get("GROQ_API_KEY", "")
+    if key:
+        groq_keys.append(key)
 
-                    def generate_fast_stream():
-                        for chunk in response:
-                            if chunk.text:
-                                yield chunk.text
-
-                    reponse_finale = st.write_stream(generate_fast_stream())
-                    succes = True
-                    break
-                except Exception as e:
-                    erreurs_detectees.append(f"Erreur Gemini ({model_name}) : {e}")
-
-        # 2. FALLBACK VIA GROQ
-        if groq_keys and not succes:
-            messages_payload = [
-                {"role": "system", "content": SYSTEM_PROMPT}
-            ] + [
-                {"role": m["role"], "content": m["content"]} 
-                for m in contexte_limite
-            ]
-            
-            for idx_key, g_key in enumerate(groq_keys):
-                for groq_model in ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"]:
-                    try:
-                        client = Groq(api_key=g_key)
-                        stream = client.chat.completions.create(
-                            model=groq_model, 
-                            messages=messages_payload, 
-                            stream=True
-                        )
-                        
-                        def generate_groq_fast():
-                            for chunk in stream:
-                                content = chunk.choices[0].delta.content
-                                if content:
-                                    yield content
-
-                        reponse_finale = st.write_stream(generate_groq_fast())
-                        succes = True
-                        break
-                    except Exception as e:
-                        erreurs_detectees.append(f"Erreur Groq (Clé #{idx_key + 1} - {groq_model}) : {e}")
-                if succes:
-                    break
+if gemini_key:
+    try:
+        genai.configure(api_key=gemini_key)
+    except Exception:
+        pass
 
 # --- MATRICE PROMPTS (20 DOMAINES) ---
 MATRICE_PROMPTS = {
@@ -396,7 +359,7 @@ if prompt_input:
 
         # 1. TENTATIVE VIA GEMINI
         if gemini_key and not succes:
-            for model_name in ["gemini-1.5-flash", "gemini-1.5-pro"]:
+            for model_name in ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"]:
                 try:
                     model = genai.GenerativeModel(model_name=model_name, system_instruction=SYSTEM_PROMPT)
                     chat_history = [{"role": "user" if m["role"] == "user" else "model", "parts": [m["content"]]} for m in contexte_limite[:-1]]
@@ -424,7 +387,7 @@ if prompt_input:
             ]
             
             for idx_key, g_key in enumerate(groq_keys):
-                for groq_model in ["llama-3.1-8b-instant", "llama-3.3-70b-versatile"]:
+                for groq_model in ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"]:
                     try:
                         client = Groq(api_key=g_key)
                         stream = client.chat.completions.create(
