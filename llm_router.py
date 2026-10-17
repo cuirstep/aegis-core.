@@ -2,37 +2,25 @@ import os
 import streamlit as st
 from groq import Groq
 import google.generativeai as genai
-# Import optionnel pour OpenAI / Anthropic si les packages sont installés
-try:
-    from openai import OpenAI
-except ImportError:
-    OpenAI = None
-
-try:
-    import anthropic
-except ImportError:
-    anthropic = None
-
-import requests  # Pour communiquer avec Ollama en local
+import requests
+import json
 
 def route_and_generate(prompt, system_prompt="", provider="auto", model_name="", history=None):
     """
     Route la requête vers le LLM sélectionné ou applique un fallback intelligent.
-    Providers supportés : 'gemini', 'groq', 'openai', 'claude', 'ollama', 'auto'
     """
     if history is None:
         history = []
 
-    reponse_texte = ""
     erreurs = []
 
     # --- 1. FOURNISSEUR : GOOGLE GEMINI ---
-    if provider == "gemini" or (provider == "auto" and not reponse_texte):
+    if provider == "gemini" or provider == "auto":
         gemini_key = st.secrets.get("GEMINI_API_KEY", os.getenv("GEMINI_API_KEY", ""))
         if gemini_key:
             try:
                 genai.configure(api_key=gemini_key)
-                m_name = model_name if model_name else "gemini-1.5-flash"
+                m_name = model_name if model_name else "gemini-3.8-flash"
                 model = genai.GenerativeModel(model_name=m_name, system_instruction=system_prompt)
                 
                 chat_history = [{"role": "user" if m["role"] == "user" else "model", "parts": [m["content"]]} for m in history[:-1]]
@@ -46,13 +34,13 @@ def route_and_generate(prompt, system_prompt="", provider="auto", model_name="",
             except Exception as e:
                 erreurs.append(f"Gemini Error: {e}")
 
-    # --- 2. FOURNISSEUR : GROQ (Llama / Mixtral) ---
-    if provider == "groq" or (provider == "auto" and not reponse_texte):
+    # --- 2. FOURNISSEUR : GROQ ---
+    if provider == "groq" or provider == "auto":
         groq_key = st.secrets.get("GROQ_API_KEY_1", st.secrets.get("GROQ_API_KEY", os.getenv("GROQ_API_KEY", "")))
         if groq_key:
             try:
                 client = Groq(api_key=groq_key)
-                m_name = model_name if model_name else "llama-3.3-70b-versatile"
+                m_name = model_name if model_name else "llama-3.1-8b-instant"
                 messages_payload = [{"role": "system", "content": system_prompt}] + history
                 
                 stream = client.chat.completions.create(
@@ -68,8 +56,8 @@ def route_and_generate(prompt, system_prompt="", provider="auto", model_name="",
             except Exception as e:
                 erreurs.append(f"Groq Error: {e}")
 
-    # --- 3. FOURNISSEUR : OLLAMA (Modèles locaux sur le PC) ---
-    if provider == "ollama" or (provider == "auto" and not reponse_texte):
+    # --- 3. FOURNISSEUR : OLLAMA (Uniquement si explicitement demandé et en local) ---
+    if provider == "ollama":
         try:
             m_name = model_name if model_name else "llama3"
             url = "http://localhost:11434/api/chat"
@@ -88,7 +76,6 @@ def route_and_generate(prompt, system_prompt="", provider="auto", model_name="",
                             yield content
                 return
         except Exception as e:
-            erreurs.append(f"Ollama Local Error (Vérifiez si Ollama tourne sur le PC): {e}")
+            erreurs.append(f"Ollama Local Error (Serveur local non accessible): {e}")
 
-    # Si aucun fournisseur n'a répondu
-    yield f"Erreur critique du routeur LLM. Aucun canal distant ou local n'a pu répondre. Détails : {erreurs}"
+    yield f"Erreur critique du routeur LLM. Aucun canal distant n'a pu répondre. Détails : {erreurs}"
