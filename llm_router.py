@@ -57,26 +57,4 @@ def route_and_generate(prompt, system_prompt="", provider="auto", model_name="",
             except Exception as e:
                 erreurs.append(f"Gemini Error: {e}")
 
-    # --- 3. FOURNISSEUR OLLAMA (Local PC uniquement) ---
-    if provider == "ollama":
-        try:
-            m_name = model_name if model_name else "llama3"
-            url = "http://localhost:11434/api/chat"
-            payload = {
-                "model": m_name,
-                "messages": [{"role": "system", "content": system_prompt}] + history,
-                "stream": True
-            }
-            response = requests.post(url, json=payload, stream=True, timeout=5)
-            if response.status_code == 200:
-                for line in response.iter_lines():
-                    if line:
-                        body = json.loads(line.decode("utf-8"))
-                        content = body.get("message", {}).get("content", "")
-                        if content:
-                            yield content
-                return
-        except Exception as e:
-            erreurs.append(f"Ollama Error: {e}")
-
     yield f"Erreur de réponse. Détails : {erreurs}"
