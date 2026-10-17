@@ -155,7 +155,7 @@ MATRICE_PROMPTS = {
     ],
     "GameDev & Moteurs 3D": [
         "Redige le cahier des charges de Game Design pour un jeu d'action.",
-        "Explique la gestion de la physique et des collisions sous Unreal Engine 5."
+        "Explique la physique et les collisions sous Unreal Engine 5."
     ],
     "Optimisation Systeme": [
         "Propose une methode pour reduire la latence d'une application web.",
@@ -285,4 +285,134 @@ with st.sidebar:
     st.markdown("---")
 
     # MATRICE DE COMMANDES
-    st.markdown("### MATRICE DE COMMAND
+    st.markdown("### MATRICE DE COMMANDES")
+    theme_choisi = st.selectbox("Domaine Prompt :", list(MATRICE_PROMPTS.keys()))
+    prompt_selectionne = st.selectbox("Commande :", MATRICE_PROMPTS[theme_choisi])
+    
+    if st.button("Injecter le prompt"):
+        quick_action = prompt_selectionne
+
+# --- SYSTEM PROMPT ---
+SYSTEM_PROMPT = (
+    "Tu es AEGIS-CORE (Version Beta), un systeme d'IA souverain developpe par le Commandant. "
+    "Tu es ultra-performant, direct et rigoureux. "
+    "Si tu emets une hypothese ou une deduction, étiquette-la OBLIGATOIREMENT par '[HYPOTHESE / DEDUCTION]'."
+)
+
+# --- INTERFACE PRINCIPALE ---
+st.markdown(f"### AEGIS-CORE // {st.session_state['session_active'].upper()} (BETA)")
+st.caption(f"Domaine actif : **{theme_choisi}**")
+
+st.markdown("---")
+
+# PANNEAU ADMIN COMMANDANT
+if st.session_state.is_admin:
+    st.header("Panneau de Controle Global (Commandant)")
+    st.warning("Acces complet aux donnees, profils et diagnostics du serveur.")
+    if st.button("Reinitialiser toutes les sessions (Danger)"):
+        st.success("Opération simulée.")
+    st.markdown("---")
+
+# --- GESTION DU CHAT & PERSISTANCE ---
+messages_actuels = st.session_state["sessions"][st.session_state["session_active"]]
+
+for message in messages_actuels:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+prompt_a_traiter = None
+
+if messages_actuels:
+    dernier_index_user = -1
+    for idx, m in enumerate(reversed(messages_actuels)):
+        if m["role"] == "user":
+            dernier_index_user = len(messages_actuels) - 1 - idx
+            break
+            
+    if dernier_index_user != -1:
+        with st.expander("Modifier votre derniere directive"):
+            nouveau_texte = st.text_input("Ajustez votre consigne :", value=messages_actuels[dernier_index_user]["content"], key=f"edit_txt_{st.session_state['session_active']}")
+            if st.button("Mettre a jour et relancer", key=f"btn_edit_run_{st.session_state['session_active']}"):
+                st.session_state["sessions"][st.session_state["session_active"]] = messages_actuels[:dernier_index_user]
+                prompt_a_traiter = nouveau_texte
+                if st.session_state.current_user:
+                    save_user_session(st.session_state.current_user, st.session_state["session_active"], st.session_state["sessions"][st.session_state["session_active"]])
+                st.rerun()
+
+prompt_input = st.chat_input("Entrez votre directive, Commandant...")
+if quick_action:
+    prompt_input = quick_action
+if prompt_a_traiter:
+    prompt_input = prompt_a_traiter
+
+if prompt_input:
+    messages_actuels.append({"role": "user", "content": prompt_input})
+    with st.chat_message("user"):
+        st.markdown(prompt_input)
+
+    with st.chat_message("assistant"):
+        reponse_finale = ""
+        succes = False
+        erreurs_detectees = []
+
+        contexte_limite = messages_actuels[-10:]
+
+        # 1. TENTATIVE VIA GEMINI
+        if gemini_key and not succes:
+            for model_name in ["gemini-1.5-flash", "gemini-1.5-pro"]:
+                try:
+                    model = genai.GenerativeModel(model_name=model_name, system_instruction=SYSTEM_PROMPT)
+                    chat_history = [{"role": "user" if m["role"] == "user" else "model", "parts": [m["content"]]} for m in contexte_limite[:-1]]
+                    chat = model.start_chat(history=chat_history)
+                    response = chat.send_message(prompt_input, stream=True)
+
+                    def generate_fast_stream():
+                        for chunk in response:
+                            if chunk.text:
+                                yield chunk.text
+
+                    reponse_finale = st.write_stream(generate_fast_stream())
+                    succes = True
+                    break
+                except Exception as e:
+                    erreurs_detectees.append(f"Erreur Gemini ({model_name}) : {e}")
+
+        # 2. FALLBACK VIA GROQ
+        if groq_keys and not succes:
+            messages_payload = [{"role": "system", "content": SYSTEM_PROMPT}] + [{"role": m["role"], "content": m["content"]} for m in contexte_limite]
+            for idx_key, g_key in enumerate(groq_keys):
+                try:
+                    client = Groq(api_key=g_key)
+                    stream = client.chat.completions.create(
+                        model="llama-3.3-70b-versatile", 
+                        messages=messages_payload, 
+                        stream=True
+                    )
+                    
+                    def generate_groq_fast():
+                        for chunk in stream:
+                            content = chunk.choices[0].delta.content
+                            if content:
+                                yield content
+
+                    reponse_finale = st.write_stream(generate_groq_fast())
+                    succes = True
+                    break
+                except Exception as e:
+                    erreurs_detectees.append(f"Erreur Groq (Clé #{idx_key + 1}) : {e}")
+
+        # 3. GESTION DES ERREURS
+        if not succes:
+            reponse_finale = "Erreur de réseau : Les canaux distants (Gemini & Groq) ne répondent pas."
+            st.error(reponse_finale)
+            
+            with st.expander("Diagnostic technique des erreurs API"):
+                if not gemini_key and not groq_keys:
+                    st.warning("Aucune clé API détectée. Vérifiez votre fichier .streamlit/secrets.toml.")
+                for err in erreurs_detectees:
+                    st.code(err, language="bash")
+
+        messages_actuels.append({"role": "assistant", "content": reponse_finale})
+        
+        if st.session_state.current_user:
+            save_user_session(st.session_state.current_user, st.session_state["session_active"], messages_actuels)
