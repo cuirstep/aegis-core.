@@ -131,7 +131,7 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-# --- MATRICE PROMPTS (RESTAURÉE INTÉGRALEMENT) ---
+# --- MATRICE PROMPTS (INTÉGRALE) ---
 MATRICE_PROMPTS = {
     "Pedagogie, Quiz & Resumes": [
         "Genere un Quiz interactif de 5 questions a choix multiples base sur notre derniere discussion.",
@@ -282,6 +282,7 @@ st.markdown(f"### AEGIS-CORE // {st.session_state['session_active'].upper()} (BE
 st.caption(f"Domaine actif : **{theme_choisi}**")
 st.markdown("---")
 
+# --- GESTION DU CHAT & PERSISTANCE ---
 messages_actuels = st.session_state["sessions"][st.session_state["session_active"]]
 
 for message in messages_actuels:
@@ -313,6 +314,7 @@ if quick_action:
 if prompt_a_traiter:
     prompt_input = prompt_a_traiter
 
+# --- TRAITEMENT UNIQUE DU PROMPT ET DE L'AUDIO ---
 if prompt_input:
     messages_actuels.append({"role": "user", "content": prompt_input})
     with st.chat_message("user"):
@@ -335,13 +337,14 @@ if prompt_input:
         reponse_finale = st.write_stream(generate_stream())
         messages_actuels.append({"role": "assistant", "content": reponse_finale})
 
+        # --- DÉTECTION DE LANGUE & SYNTHÈSE VOCALE ---
         langue_courante = "fr"
         if any(m in reponse_finale.lower() for m in ["the", "is", "and", "you"]):
             langue_courante = "en"
         elif any(m in reponse_finale.lower() for m in ["el", "la", "que", "por"]):
             langue_courante = "es"
         elif any(m in reponse_finale.lower() for m in ["fi", "min", "ala"]):
-            langue_courante = "ar"
+            langue_courante="ar"
         elif any(m in reponse_finale.lower() for m in ["não", "como", "para"]):
             langue_courante = "pt"
 
