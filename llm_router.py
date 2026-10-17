@@ -22,7 +22,8 @@ def route_and_generate(*args, **kwargs):
 
     system_prompt = kwargs.get("system_prompt", "")
     history = kwargs.get("history", [])
-    model = kwargs.get("model", "llama-3.1-8b-instant")
+    # Utilisation d'un modèle standard actif sur Groq
+    model = kwargs.get("model", "llama3-8b-8192")
     
     if history is None:
         history = []
@@ -31,7 +32,6 @@ def route_and_generate(*args, **kwargs):
     if system_prompt:
         messages.append({"role": "system", "content": str(system_prompt)})
     
-    # Nettoyage et filtrage de l'historique pour éviter les contenus vides
     for msg in history:
         if isinstance(msg, dict) and "role" in msg and "content" in msg:
             content = msg.get("content")
