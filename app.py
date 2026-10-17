@@ -1,13 +1,11 @@
-from gtts import gTTS
-import io
-import streamlit as st
 import os
-import base64
-import json
-import time
-from llm_router import route_and_generate
 import requests
 import io
+import json
+import base64
+import time
+import streamlit as st
+from llm_router import route_and_generate
 
 def text_to_speech_elevenlabs(text, langue="fr"):
     api_key = st.secrets.get("ELEVENLABS_API_KEY", "")
