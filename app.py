@@ -3,8 +3,7 @@ import os
 import base64
 import json
 import time
-from groq import Groq
-import google.generativeai as genai
+from llm_router import route_and_generate
 
 # Importation des fonctions SQLite depuis database.py
 from database import init_db, register_user, verify_user, init_chat_db, save_user_session, load_user_sessions
@@ -93,22 +92,6 @@ if "intro_played" not in st.session_state:
             <div class="intro-sub">// PROTOCOLE BETA INITIALISE //</div>
         </div>
     """, unsafe_allow_html=True)
-
-# --- API KEYS & CONFIG ---
-gemini_key = st.secrets.get("GEMINI_API_KEY", "")
-groq_keys = []
-for i in range(1, 6):
-    key = st.secrets.get(f"GROQ_API_KEY_{i}", "")
-    if not key and i == 1:
-        key = st.secrets.get("GROQ_API_KEY", "")
-    if key:
-        groq_keys.append(key)
-
-if gemini_key:
-    try:
-        genai.configure(api_key=gemini_key)
-    except Exception:
-        pass
 
 # --- MATRICE PROMPTS (20 DOMAINES) ---
 MATRICE_PROMPTS = {
@@ -351,71 +334,18 @@ if prompt_input:
         st.markdown(prompt_input)
 
     with st.chat_message("assistant"):
-        reponse_finale = ""
-        succes = False
-        erreurs_detectees = []
-
         contexte_limite = messages_actuels[-10:]
-
-        # 1. TENTATIVE VIA GEMINI
-        if gemini_key and not succes:
-            for model_name in ["gemini-1.5-flash", "gemini-1.5-pro"]:
-                try:
-                    model = genai.GenerativeModel(model_name=model_name, system_instruction=SYSTEM_PROMPT)
-                    chat_history = [{"role": "user" if m["role"] == "user" else "model", "parts": [m["content"]]} for m in contexte_limite[:-1]]
-                    chat = model.start_chat(history=chat_history)
-                    response = chat.send_message(prompt_input, stream=True)
-
-                    def generate_fast_stream():
-                        for chunk in response:
-                            if chunk.text:
-                                yield chunk.text
-
-                    reponse_finale = st.write_stream(generate_fast_stream())
-                    succes = True
-                    break
-                except Exception as e:
-                    erreurs_detectees.append(f"Erreur Gemini ({model_name}) : {e}")
-
-        # 2. FALLBACK VIA GROQ (Utilisation du modèle actif llama-3.1-8b-instant et llama-3.3-70b-versatile)
-        if groq_keys and not succes:
-            messages_payload = [{"role": "system", "content": SYSTEM_PROMPT}] + [{"role": m["role"], "content": m["content"]} for m in contexte_limite]
-            for idx_key, g_key in enumerate(groq_keys):
-                for groq_model in ["llama-3.1-8b-instant", "llama-3.3-70b-versatile"]:
-                    try:
-                        client = Groq(api_key=g_key)
-                        stream = client.chat.completions.create(
-                            model=groq_model, 
-                            messages=messages_payload, 
-                            stream=True
-                        )
-                        
-                        def generate_groq_fast():
-                            for chunk in stream:
-                                content = chunk.choices[0].delta.content
-                                if content:
-                                    yield content
-
-                        reponse_finale = st.write_stream(generate_groq_fast())
-                        succes = True
-                        break
-                    except Exception as e:
-                        erreurs_detectees.append(f"Erreur Groq (Clé #{idx_key + 1} - {groq_model}) : {e}")
-                if succes:
-                    break
-
-        # 3. GESTION DES ERREURS
-        if not succes:
-            reponse_finale = "Erreur de réseau : Les canaux distants (Gemini & Groq) ne répondent pas."
-            st.error(reponse_finale)
-            
-            with st.expander("Diagnostic technique des erreurs API"):
-                if not gemini_key and not groq_keys:
-                    st.warning("Aucune clé API détectée. Vérifiez votre configuration de secrets.")
-                for err in erreurs_detectees:
-                    st.code(err, language="bash")
-
-        messages_actuels.append({"role": "assistant", "content": reponse_finale})
         
-        if st.session_state.current_user:
-            save_user_session(st.session_state.current_user, st.session_state["session_active"], messages_actuels)
+        # Utilisation du routeur centralisé (llm_router.py)
+        def generate_stream():
+            for chunk_text in route_and_generate(
+                prompt=prompt_input,
+                system_prompt=SYSTEM_PROMPT,
+                provider="auto",
+                history=contexte_limite
+            ):
+                yield chunk_text
+
+        reponse_finale = st.write_stream(generate_stream())
+
+        messages
