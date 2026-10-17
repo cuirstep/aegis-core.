@@ -1,11 +1,19 @@
 import os
 import requests
 import json
-
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
+import streamlit as st
 
 def route_and_generate(*args, **kwargs):
-    # Récupération sécurisée des paramètres peu importe la façon dont ils sont appelés
+    # Récupération de la clé Groq depuis les secrets Streamlit
+    groq_api_key = ""
+    try:
+        groq_api_key = st.secrets.get("GROQ_API_KEY_1", "")
+    except Exception:
+        pass
+    
+    if not groq_api_key:
+        groq_api_key = os.environ.get("GROQ_API_KEY_1", os.environ.get("GROQ_API_KEY", ""))
+
     prompt = kwargs.get("prompt", args[0] if args else "")
     system_prompt = kwargs.get("system_prompt", "")
     history = kwargs.get("history", [])
@@ -25,7 +33,7 @@ def route_and_generate(*args, **kwargs):
 
     url = "https://api.groq.com/openai/v1/chat/completions"
     headers = {
-        "Authorization": f"Bearer {GROQ_API_KEY}",
+        "Authorization": f"Bearer {groq_api_key}",
         "Content-Type": "application/json"
     }
     data = {
