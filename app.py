@@ -1,10 +1,12 @@
 import os
-import requests
-import io
 import json
 import base64
 import time
+import requests
+import io
 import streamlit as st
+
+# --- ROUTEUR LLM & SYNTHÈSE VOCALE ---
 from llm_router import route_and_generate
 
 def text_to_speech_elevenlabs(text, langue="fr"):
