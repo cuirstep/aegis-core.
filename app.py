@@ -6,9 +6,14 @@ import requests
 import io
 import streamlit as st
 
+# --- ROUTEUR LLM & SYNTHÈSE VOCALE ---
 from llm_router import route_and_generate
 
 def text_to_speech_elevenlabs(text, langue="fr"):
+    api_key = st.secrets.get("ELEVENLABS_API_KEY", "")
+    if not api_key:
+        return None
+        
     voix_par_langue = {
         "fr": "xclXfpLYbMIBNgiHTm8S",
         "en": "DODLEQrClDo8wCz460ld",
