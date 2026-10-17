@@ -41,28 +41,23 @@ def text_to_speech_elevenlabs(text, langue="fr"):
         pass
     return None
     
-# Importation des fonctions SQLite depuis database.py
 from database import init_db, register_user, verify_user, init_chat_db, save_user_session, load_user_sessions
 
-# --- CONFIGURATION DE LA PAGE ---
 st.set_page_config(
     page_title="AEGIS-CORE // BETA", 
     page_icon="🛡️", 
     layout="wide"
 )
 
-# Initialisation des bases de données SQLite au démarrage
 init_db()
 init_chat_db()
 
-# --- INITIALISATION DES ÉTATS GLOBAUX ---
 if "is_admin" not in st.session_state:
     st.session_state.is_admin = False
 
 if "current_user" not in st.session_state:
     st.session_state.current_user = None
 
-# Synchronisation des sessions avec SQLite
 if "sessions" not in st.session_state:
     if st.session_state.current_user:
         st.session_state["sessions"] = load_user_sessions(st.session_state.current_user)
@@ -72,17 +67,14 @@ if "sessions" not in st.session_state:
 if "session_active" not in st.session_state or st.session_state["session_active"] not in st.session_state["sessions"]:
     st.session_state["session_active"] = list(st.session_state["sessions"].keys())[0]
 
-# --- INJECTION CSS ---
 st.markdown("""
     <style>
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
-    
     .stApp {
         background-color: #0e1117;
         color: #ffffff;
     }
-    
     [data-testid="stChatMessageAvatarUser"], 
     [data-testid="stChatMessageAvatarAssistant"],
     .stChatMessageAvatar,
@@ -98,7 +90,6 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- MATRICE PROMPTS ---
 MATRICE_PROMPTS = {
     "Pedagogie, Quiz & Resumes": [
         "Genere un Quiz interactif de 5 questions a choix multiples base sur notre derniere discussion.",
@@ -121,7 +112,6 @@ MATRICE_PROMPTS = {
     ]
 }
 
-# --- BARRE LATERALE ---
 quick_action = None
 
 with st.sidebar:
@@ -211,19 +201,16 @@ with st.sidebar:
     if st.button("Injecter le prompt"):
         quick_action = prompt_selectionne
 
-# --- SYSTEM PROMPT ---
 SYSTEM_PROMPT = (
     "Tu es AEGIS-CORE (Version Beta), un systeme d'IA souverain developpé par le Commandant. "
     "Tu es ultra-performant, direct, chaleureux et rigoureux. Quand on te salue, réponds de manière courtoise et professionnelle. "
     "Si tu emets une hypothese ou une deduction, étiquette-la OBLIGATOIREMENT par '[HYPOTHESE / DEDUCTION]'."
 )
 
-# --- INTERFACE PRINCIPALE ---
 st.markdown(f"### AEGIS-CORE // {st.session_state['session_active'].upper()} (BETA)")
 st.caption(f"Domaine actif : **{theme_choisi}**")
 st.markdown("---")
 
-# --- GESTION DU CHAT & PERSISTANCE ---
 messages_actuels = st.session_state["sessions"][st.session_state["session_active"]]
 
 for message in messages_actuels:
@@ -272,7 +259,6 @@ if prompt_input:
             ):
                 yield chunk_text
 
-        # --- EFFET VISUEL : CERCLE ANIMÉ STYLE DISCORD ---
         st.markdown("""
             <style>
             .discord-speaking-ring {
@@ -280,4 +266,10 @@ if prompt_input:
                 height: 32px;
                 border-radius: 50%;
                 border: 3px solid #00ff66;
-                box-shadow: 0 0 10px #00b
+                box-shadow: 0 0 10px #00bfff, inset 0 0 6px #00ff66;
+                animation: discordPulse 1.2s infinite ease-in-out;
+                display: inline-block;
+                margin-bottom: 8px;
+            }
+            @keyframes discordPulse {
+                0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(0, 255, 10
