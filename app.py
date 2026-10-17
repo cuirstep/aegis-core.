@@ -72,7 +72,7 @@ if "sessions" not in st.session_state:
 if "session_active" not in st.session_state or st.session_state["session_active"] not in st.session_state["sessions"]:
     st.session_state["session_active"] = list(st.session_state["sessions"].keys())[0]
 
-# --- INJECTION CSS (SUPPRESSION TOTALE DES ICÔNES & DESIGN ÉPURÉ) ---
+# --- INJECTION CSS ---
 st.markdown("""
     <style>
     #MainMenu {visibility: hidden;}
@@ -83,7 +83,6 @@ st.markdown("""
         color: #ffffff;
     }
     
-    /* SUPPRESSION RADICALE DE TOUTES LES ICÔNES DE CHAT */
     [data-testid="stChatMessageAvatarUser"], 
     [data-testid="stChatMessageAvatarAssistant"],
     .stChatMessageAvatar,
@@ -220,139 +219,4 @@ with st.sidebar:
         st.info("Mode Commandant Total")
         if st.button("Verrouiller Admin"):
             st.session_state.is_admin = False
-            st.rerun()
-
-    st.markdown("---")
-
-    st.markdown("### MULTI-SESSIONS")
-    if st.button("Nouvelle discussion"):
-        new_name = f"Discussion {len(st.session_state['sessions']) + 1}"
-        st.session_state["sessions"][new_name] = []
-        st.session_state["session_active"] = new_name
-        if st.session_state.current_user:
-            save_user_session(st.session_state.current_user, new_name, [])
-        st.rerun()
-
-    session_keys = list(st.session_state["sessions"].keys())
-    session_index = session_keys.index(st.session_state["session_active"]) if st.session_state["session_active"] in session_keys else 0
-    session_choisie = st.selectbox("Sessions enregistrées :", session_keys, index=session_index)
-    
-    if session_choisie != st.session_state["session_active"]:
-        st.session_state["session_active"] = session_choisie
-        st.rerun()
-
-    st.markdown("---")
-
-    st.markdown("### MATRICE DE COMMANDES")
-    theme_choisi = st.selectbox("Domaine Prompt :", list(MATRICE_PROMPTS.keys()))
-    prompt_selectionne = st.selectbox("Commande :", MATRICE_PROMPTS[theme_choisi])
-    
-    if st.button("Injecter le prompt"):
-        quick_action = prompt_selectionne
-
-# --- SYSTEM PROMPT ---
-SYSTEM_PROMPT = (
-    "Tu es AEGIS-CORE (Version Beta), un systeme d'IA souverain developpe par le Commandant. "
-    "Tu es ultra-performant, direct et rigoureux. "
-    "Si tu emets une hypothese ou une deduction, étiquette-la OBLIGATOIREMENT par '[HYPOTHESE / DEDUCTION]'."
-)
-
-# --- INTERFACE PRINCIPALE ---
-st.markdown(f"### AEGIS-CORE // {st.session_state['session_active'].upper()} (BETA)")
-st.caption(f"Domaine actif : **{theme_choisi}**")
-st.markdown("---")
-
-# --- GESTION DU CHAT & PERSISTANCE ---
-messages_actuels = st.session_state["sessions"][st.session_state["session_active"]]
-
-for message in messages_actuels:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
-
-prompt_a_traiter = None
-
-if messages_actuels:
-    dernier_index_user = -1
-    for idx, m in enumerate(reversed(messages_actuels)):
-        if m["role"] == "user":
-            dernier_index_user = len(messages_actuels) - 1 - idx
-            break
-            
-    if dernier_index_user != -1:
-        with st.expander("Modifier votre derniere directive"):
-            nouveau_texte = st.text_input("Ajustez votre consigne :", value=messages_actuels[dernier_index_user]["content"], key=f"edit_txt_{st.session_state['session_active']}")
-            if st.button("Mettre a jour et relancer", key=f"btn_edit_run_{st.session_state['session_active']}"):
-                st.session_state["sessions"][st.session_state["session_active"]] = messages_actuels[:dernier_index_user]
-                prompt_a_traiter = nouveau_texte
-                if st.session_state.current_user:
-                    save_user_session(st.session_state.current_user, st.session_state["session_active"], st.session_state["sessions"][st.session_state["session_active"]])
-                st.rerun()
-
-prompt_input = st.chat_input("Entrez votre directive, Commandant...")
-if quick_action:
-    prompt_input = quick_action
-if prompt_a_traiter:
-    prompt_input = prompt_a_traiter
-
-if prompt_input:
-    messages_actuels.append({"role": "user", "content": prompt_input})
-    with st.chat_message("user"):
-        st.markdown(prompt_input)
-
-    with st.chat_message("assistant"):
-        contexte_limite = messages_actuels[-10:]
-        
-        def generate_stream():
-            for chunk_text in route_and_generate(
-                prompt=prompt_input,
-                system_prompt=SYSTEM_PROMPT,
-                provider="auto",
-                history=contexte_limite
-            ):
-                yield chunk_text
-
-        # --- EFFET VISUEL : CERCLE ANIMÉ STYLE DISCORD ---
-        st.markdown("""
-            <style>
-            .discord-speaking-ring {
-                width: 32px;
-                height: 32px;
-                border-radius: 50%;
-                border: 3px solid #00ff66;
-                box-shadow: 0 0 10px #00bfff, inset 0 0 6px #00ff66;
-                animation: discordPulse 1.2s infinite ease-in-out;
-                display: inline-block;
-                margin-bottom: 8px;
-            }
-            @keyframes discordPulse {
-                0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(0, 255, 102, 0.7), 0 0 0 0 rgba(0, 191, 255, 0.7); }
-                70% { transform: scale(1.15); box-shadow: 0 0 0 8px rgba(0, 255, 102, 0), 0 0 0 16px rgba(0, 191, 255, 0); }
-                100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(0, 255, 102, 0), 0 0 0 0 rgba(0, 191, 255, 0); }
-            }
-            </style>
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <div class="discord-speaking-ring"></div>
-                <span style="font-size: 0.8em; color: #00ff66; font-family: monospace;">CANAL AUDIO ACTIF...</span>
-            </div>
-        """, unsafe_allow_html=True)
-
-        reponse_finale = st.write_stream(generate_stream())
-        messages_actuels.append({"role": "assistant", "content": reponse_finale})
-
-        # --- SYNTHÈSE VOCALE ELEVENLABS MULTILINGUE ---
-        langue_courante = "fr"
-        if any(m in reponse_finale.lower() for m in ["the", "is", "and", "you"]):
-            langue_courante = "en"
-        elif any(m in reponse_finale.lower() for m in ["el", "la", "que", "por"]):
-            langue_courante = "es"
-        elif any(m in reponse_finale.lower() for m in ["fi", "min", "ala"]):
-            langue_courante = "ar"
-        elif any(m in reponse_finale.lower() for m in ["não", "como", "para"]):
-            langue_courante = "pt"
-
-        audio_content = text_to_speech_elevenlabs(reponse_finale, langue=langue_courante)
-        if audio_content:
-            st.audio(audio_content, format='audio/mpeg', autoplay=True)
-
-        if st.session_state.current_user:
-            save_user_session(st.session_state.current_user, st.session_state["session_active"], messages_actuels)
+            st.rer
