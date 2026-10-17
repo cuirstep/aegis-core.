@@ -4,7 +4,13 @@ import json
 
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
 
-def route_and_generate(prompt, system_prompt="", history=None, model="llama-3.1-8b-instant"):
+def route_and_generate(*args, **kwargs):
+    # Récupération sécurisée des paramètres peu importe la façon dont ils sont appelés
+    prompt = kwargs.get("prompt", args[0] if args else "")
+    system_prompt = kwargs.get("system_prompt", "")
+    history = kwargs.get("history", [])
+    model = kwargs.get("model", "llama-3.1-8b-instant")
+    
     if history is None:
         history = []
     
