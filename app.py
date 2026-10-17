@@ -303,3 +303,51 @@ for message in messages_actuels:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
      
+prompt_a_traiter = None
+
+if messages_actuels:
+    dernier_index_user = -1
+    for idx, m in enumerate(reversed(messages_actuels)):
+        if m["role"] == "user":
+            dernier_index_user = len(messages_actuels) - 1 - idx
+            break
+            
+    if dernier_index_user != -1:
+        with st.expander("Modifier votre derniere directive"):
+            nouveau_texte = st.text_input("Ajustez votre consigne :", value=messages_actuels[dernier_index_user]["content"], key=f"edit_txt_{st.session_state['session_active']}")
+            if st.button("Mettre a jour et relancer", key=f"btn_edit_run_{st.session_state['session_active']}"):
+                st.session_state["sessions"][st.session_state["session_active"]] = messages_actuels[:dernier_index_user]
+                prompt_a_traiter = nouveau_texte
+                if st.session_state.current_user:
+                    save_user_session(st.session_state.current_user, st.session_state["session_active"], st.session_state["sessions"][st.session_state["session_active"]])
+                st.rerun()
+
+prompt_input = st.chat_input("Entrez votre directive, Commandant...")
+if quick_action:
+    prompt_input = quick_action
+if prompt_a_traiter:
+    prompt_input = prompt_a_traiter
+
+if prompt_input:
+    messages_actuels.append({"role": "user", "content": prompt_input})
+    with st.chat_message("user"):
+        st.markdown(prompt_input)
+
+    with st.chat_message("assistant"):
+        contexte_limite = messages_actuels[-10:]
+        
+        def generate_stream():
+            for chunk_text in route_and_generate(
+                prompt=prompt_input,
+                system_prompt=SYSTEM_PROMPT,
+                provider="auto",
+                history=contexte_limite
+            ):
+                yield chunk_text
+
+        reponse_finale = st.write_stream(generate_stream())
+
+        messages_actuels.append({"role": "assistant", "content": reponse_finale})
+        
+        if st.session_state.current_user:
+            save_user_session(st.session_state.current_user, st.session_state["session_active"], messages_actuels)
