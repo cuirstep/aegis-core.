@@ -292,20 +292,48 @@ with st.chat_message("assistant"):
             ):
                 yield chunk_text
 
-        reponse_finale = st.write_stream(generate_stream())
+        # --- EFFET VISUEL : CERCLE ANIMÉ STYLE DISCORD (Vert et Bleu) ---
+        st.markdown("""
+            <style>
+            .discord-speaking-ring {
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
+                border: 3px solid #00ff66;
+                box-shadow: 0 0 10px #00bfff, inset 0 0 6px #00ff66;
+                animation: discordPulse 1.2s infinite ease-in-out;
+                display: inline-block;
+                margin-bottom: 8px;
+            }
+            @keyframes discordPulse {
+                0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(0, 255, 102, 0.7), 0 0 0 0 rgba(0, 191, 255, 0.7); }
+                70% { transform: scale(1.15); box-shadow: 0 0 0 8px rgba(0, 255, 102, 0), 0 0 0 16px rgba(0, 191, 255, 0); }
+                100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(0, 255, 102, 0), 0 0 0 0 rgba(0, 191, 255, 0); }
+            }
+            </style>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <div class="discord-speaking-ring"></div>
+                <span style="font-size: 0.8em; color: #00ff66; font-family: monospace;">CANAL AUDIO ACTIF...</span>
+            </div>
+        """, unsafe_allow_html=True)
 
+        reponse_finale = st.write_stream(generate_stream())
         messages_actuels.append({"role": "assistant", "content": reponse_finale})
-        
-        # --- SYNTHÈSE VOCALE (TEXT-TO-SPEECH) ---
-        try:
-            tts = gTTS(text=reponse_finale, lang='fr', slow=False)
-            audio_bytes = io.BytesIO()
-            tts.write_to_fp(audio_bytes)
-            audio_bytes.seek(0)
-            st.audio(audio_bytes, format='audio/mp3')
-        except Exception as e:
-            st.caption(f"Audio non disponible : {e}")
+
+        # --- SYNTHÈSE VOCALE ELEVENLABS MULTILINGUE ---
+        langue_courante = "fr"
+        if any(m in reponse_finale.lower() for m in ["the", "is", "and", "you"]):
+            langue_courante = "en"
+        elif any(m in reponse_finale.lower() for m in ["el", "la", "que", "por"]):
+            langue_courante = "es"
+        elif any(m in reponse_finale.lower() for m in ["fi", "min", "ala"]):
+            langue_courante = "ar"
+        elif any(m in reponse_finale.lower() for m in ["não", "como", "para"]):
+            langue_courante = "pt"
+
+        audio_content = text_to_speech_elevenlabs(reponse_finale, langue=langue_courante)
+        if audio_content:
+            st.audio(io.BytesIO(audio_content), format='audio/mpeg', autoplay=True)
 
         if st.session_state.current_user:
             save_user_session(st.session_state.current_user, st.session_state["session_active"], messages_actuels)
-   
