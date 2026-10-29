@@ -69,30 +69,30 @@ if "sessions" not in st.session_state:
 if "session_active" not in st.session_state or st.session_state["session_active"] not in st.session_state["sessions"]:
     st.session_state["session_active"] = list(st.session_state["sessions"].keys())[0]
 
-    # --- INJECTION CSS DE BASE ---
+   # --- INJECTION CSS DE BASE ---
 st.markdown("""
-    <style>
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    
-    .stApp {
-        background-color: #0e1117;
-        color: #ffffff;
-    }
-    
-    [data-testid="stChatMessageAvatarUser"], 
-    [data-testid="stChatMessageAvatarAssistant"],
-    .stChatMessageAvatar,
-    div[data-testid="chatAvatarIcon-user"],
-    div[data-testid="chatAvatarIcon-assistant"] {
-        display: none !important;
-        visibility: hidden !important;
-        width: 0px !important;
-        height: 0px !important;
-        margin: 0px !important;
-        padding: 0px !important;
-    }
-    </style>
+<style>
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+
+.stApp {
+    background-color: #0e1117;
+    color: #ffffff;
+}
+
+[data-testid="stChatMessageAvatarUser"], 
+[data-testid="stChatMessageAvatarAssistant"],
+.stChatMessageAvatar,
+div[data-testid="chatAvatarIcon-user"],
+div[data-testid="chatAvatarIcon-assistant"] {
+    display: none !important;
+    visibility: hidden !important;
+    width: 0px !important;
+    height: 0px !important;
+    margin: 0px !important;
+    padding: 0px !important;
+}
+</style>
 """, unsafe_allow_html=True)
 }
     </style>
