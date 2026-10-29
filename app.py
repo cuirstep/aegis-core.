@@ -8,7 +8,7 @@ import streamlit as st
 from llm_router import route_and_generate
 
 def text_to_speech_elevenlabs(text, langue="fr"):
-    api_key = st.secrets.get("ELEVENLABS_API_KEY", "")
+  api_key = st.secrets.get("ELEVENLABS_API_KEY", "")
     if not api_key:
         return None
         
