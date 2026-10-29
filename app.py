@@ -69,7 +69,7 @@ if "sessions" not in st.session_state:
 if "session_active" not in st.session_state or st.session_state["session_active"] not in st.session_state["sessions"]:
     st.session_state["session_active"] = list(st.session_state["sessions"].keys())[0]
 
-   # --- INJECTION CSS DE BASE ---
+  # --- INJECTION CSS DE BASE ---
 st.markdown("""
 <style>
 #MainMenu {visibility: hidden;}
@@ -93,14 +93,6 @@ div[data-testid="chatAvatarIcon-assistant"] {
     padding: 0px !important;
 }
 </style>
-""", unsafe_allow_html=True)
-}
-    </style>
-
-    <div class="intro-overlay">
-        AEGIS-CORE
-        <div class="intro-sub">// PROTOCOLE BETA INITIALISE //</div>
-    </div>
 """, unsafe_allow_html=True)
 
 # --- MATRICE PROMPTS (20 THÈMES X 20 PROPOSITIONS) ---
