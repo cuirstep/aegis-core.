@@ -69,61 +69,7 @@ if "sessions" not in st.session_state:
 if "session_active" not in st.session_state or st.session_state["session_active"] not in st.session_state["sessions"]:
     st.session_state["session_active"] = list(st.session_state["sessions"].keys())[0]
 
-# --- INJECTION CSS & ANIMATION DE DÉMARRAGE ---
-st.markdown("""
-    <style>
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    
-    .stApp {
-        background-color: #0e1117;
-        color: #ffffff;
-    }
-    
-    [data-testid="stChatMessageAvatarUser"], 
-    [data-testid="stChatMessageAvatarAssistant"],
-    .stChatMessageAvatar,
-    div[data-testid="chatAvatarIcon-user"],
-    div[data-testid="chatAvatarIcon-assistant"] {
-        display: none !important;
-        visibility: hidden !important;
-        width: 0px !important;
-        height: 0px !important;
-        margin: 0px !important;
-        padding: 0px !important;
-    }
-    
-    @keyframes brumeFadeOut {
-        0% { opacity: 1; filter: blur(0px); visibility: visible; }
-        70% { opacity: 1; filter: blur(3px); visibility: visible; }
-        100% { opacity: 0; filter: blur(15px); visibility: hidden; pointer-events: none; }
-    }
 
-    .intro-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background-color: #000000;
-        color: #ffffff;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        z-index: 999999;
-        animation: brumeFadeOut 2.0s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-        font-family: monospace;
-        letter-spacing: 8px;
-        font-size: 3em;
-        font-weight: bold;
-    }
-    
-    .intro-sub {
-        font-size: 0.35em;
-        letter-spacing: 4px;
-        color: #888888;
-        margin-top: 10px;
     }
     </style>
 
