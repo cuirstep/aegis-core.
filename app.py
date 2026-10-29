@@ -12,11 +12,11 @@ def text_to_speech_elevenlabs(text, langue="fr"):
   if not api_key:
     return None
     voix_par_langue = {
-        "fr": "xclXfpLYbMIBNgiHTm8S",
-        "en": "DODLEQrClDo8wCz460ld",
-        "es": "U9TSK9KHMlMU2qkeXlQP",
-        "ar": "Ywuz3KyW2N5pqKNpwcCL",
-        "pt": "IKpiSijWzlhOL6uX83EH"
+      "fr": "xclXfpLYbMIBNgiHTm8S",
+      "en": "DODLEQrClDo8wCz460ld",
+      "es": "U9TSK9KHMlMU2qkeXlQP",
+      "ar": "Ywuz3KyW2N5pqKNpwcCL",
+      "pt": "IKpiSijWzlhOL6uX83EH"
     }
     
     voice_id = voix_par_langue.get(langue, "xclXfpLYbMIBNgiHTm8S")
