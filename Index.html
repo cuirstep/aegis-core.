@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AEGIS - Jarvis Interface Vocale</title>
+    <!-- Tailwind CSS pour les styles modernes et le responsive -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome pour les icônes futuristes -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@400;500;600;700&display=swap');
+
+        :root {
+            --theme-color: #3b82f6;
+            --theme-glow: rgba(59, 130, 246, 0.6);
+            --theme-glow-strong: rgba(59, 130, 246, 0.9);
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background-color: #030712;
+            color: #f3f4f6;
+            overflow: hidden;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .font-orbitron {
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        /* Arrière-plan avec effets de grille HUD */
+        .hud-grid {
+            background-image: 
+                linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        /* L'Orbe centrale animée de Jarvis */
+        .orb-container {
+            position: relative;
+            width: 260px;
+            height: 260px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .orb-core {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, #ffffff 0%, var(--theme-color) 60%, #000 100%);
+            box-shadow: 
+                0 0 30px var(--theme-glow),
+                0 0 60px var(--theme-glow),
+                inset 0 0 20px rgba(255, 255, 255, 0.8);
+            transition: all 0.5s ease-in-out;
+            animation: pulse-core 4s infinite alternate ease-in-out;
+        }
+
+        .orb-ring-1 {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            border: 2px dashed var(--theme-color);
+            opacity: 0.6;
+            animation: rotate-cw 12s linear infinite;
+            box-shadow: 0 0 15px var(--theme-glow);
+            transition: all 0.5s ease;
+        }
+
+        .orb-ring-2 {
+            position: absolute;
+            width: 250px;
+            height: 250px;
+            border-radius: 50%;
+            border: 1px solid var(--theme-color);
+            border-top-color: transparent;
+            border-bottom-color: transparent;
+            opacity: 0.4;
+            animation: rotate-ccw 8s linear infinite;
+            transition: all 0.5s ease;
+        }
+
+        /* Pulsations et animations */
+        @keyframes pulse-core {
+            0% { transform: scale(0.95); }
+            100% { transform: scale(1.05); }
+        }
+
+        @keyframes rotate-cw {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes rotate-ccw {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(-360deg); }
+        }
+
+        /* État d'écoute vocale active */
+        .listening .orb-core {
+            animation: pulse-listening 1s infinite alternate ease-in-out !important;
+            box-shadow: 0 0 50px var(--theme-glow-strong), 0 0 100px var(--theme-glow);
+        }
+
+        .listening .orb-ring-1 {
+            animation-duration: 3s !important;
+            border-width: 3px;
+        }
+
+        @keyframes pulse-listening {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.2); }
+        }
+
+        /* Effet d'ondulation lors du scan */
+        .wave-ring {
+            position: absolute;
+            border-radius: 50%;
+            border: 2px solid var(--theme-color);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .speaking .wave-ring {
+            animation: wave-expand 1.5s infinite ease-out;
+        }
+
+        @keyframes wave-expand {
+            0% { width: 140px; height: 140px; opacity: 0.8; }
+            100% { width: 320px; height: 320px; opacity: 0; }
+        }
+
+        /* Panneaux HUD en verre dépoli */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        /* Personnalisation de la barre de défilement */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.2);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--theme-color);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="hud-grid h-screen w-screen flex flex-col justify-between p-4 md:p-6 text-slate-100 select-none">
+
+    <!-- BARRE SUPÉRIEURE / EN-TÊTE -->
+    <header class="flex justify-between items-center w-full z-10 glass-panel p-4 rounded-2xl border-b border-slate-800">
+        <div class="flex items-center space-x-3">
+            <div class="w-3 h-3 rounded-full bg-blue-500 animate-ping"></div>
+            <h1 class="font-orbitron font-extrabold text-xl md:text-2xl tracking-wider bg-gradient-to-r from-blue-400 to-indigo-200 bg-clip-text text-transparent">
+                AEGIS <span class="text-xs px-2 py-0.5 rounded bg-blue-950 text-blue-400 border border-blue-800 font-mono">v3.5 iPad</span>
+            </h1>
+        </div>
+
+        <!-- Indicateurs de statut système -->
+        <div class="flex items-center space-x-4 font-mono text-xs md:text-sm">
+            <div class="hidden sm:flex items-center space-x-2 bg-slate-900/80 px-3 py-1.5 rounded-xl border border-slate-800">
+                <i class="fa-solid fa-microchip text-blue-400"></i>
+                <span class="text-slate-400">CPU:</span>
+                <span id="cpuLoad" class="text-emerald-400">12%</span>
+            </div>
+            <div class="flex items-center space-x-2 bg-slate-900/80 px-3 py-1.5 rounded-xl border border-slate-800">
+                <i class="fa-solid fa-shield-halved text-emerald-400"></i>
+                <span class="text-slate-400">HARNESS:</span>
+                <span class="text-emerald-400 font-semibold">ACTIF</span>
+            </div>
+            <div id="micStatusBadge" class="flex items-center space-x-2 bg-slate-900/80 px-3 py-1.5 rounded-xl border border-slate-800 transition-colors">
+                <i id="micIcon" class="fa-solid fa-microphone-slash text-rose-500"></i>
+                <span id="micText" class="text-rose-400 font-semibold">INACTIF</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- SECTION PRINCIPALE (DISPOSITION IPAD) -->
+    <main class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 my-4 min-h-0 items-center">
+        
+        <!-- PANNEAU GAUCHE : État & Commandes de Couleur -->
+        <section class="lg:col-span-3 flex flex-col justify-between h-full space-y-4">
+            <!-- Console d'état -->
+            <div class="glass-panel rounded-2xl p-4 flex-1 flex flex-col justify-between">
+                <div>
+                    <h2 class="font-orbitron text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-circle-info text-blue-400"></i> État du Système
+                    </h2>
+                    <div class="space-y-3 font-mono text-xs">
+                        <div class="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/80">
+                            <span class="text-slate-500 block mb-1">Dernier mot-clé détecté :</span>
+                            <span id="triggerDetected" class="text-blue-400 font-bold text-sm">Aucun</span>
+                        </div>
+                        <div class="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/80">
+                            <span class="text-slate-500 block mb-1">Couleur Actuelle :</span>
+                            <div class="flex items-center space-x-2">
+                                <div id="colorDot" class="w-3 h-3 rounded-full bg-blue-500"></div>
+                                <span id="colorName" class="text-slate-200 uppercase font-bold">Bleu Standard</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Palette d'essai manuel rapide sur iPad -->
+                <div class="mt-4">
+                    <span class="text-xs font-mono text-slate-400 block mb-2">Thèmes rapides (Test tactile) :</span>
+                    <div class="grid grid-cols-5 gap-2">
+                        <button onclick="setTheme('blue', 'Bleu Standard', '#3b82f6')" class="h-8 rounded-lg bg-blue-500 hover:opacity-80 transition-opacity border border-blue-300/40"></button>
+                        <button onclick="setTheme('violet', 'Violet Néon', '#8b5cf6')" class="h-8 rounded-lg bg-purple-500 hover:opacity-80 transition-opacity border border-purple-300/40"></button>
+                        <button onclick="setTheme('red', 'Alerte Rouge', '#ef4444')" class="h-8 rounded-lg bg-red-500 hover:opacity-80 transition-opacity border border-red-300/40"></button>
+                        <button onclick="setTheme('yellow', 'Jaune Solaire', '#eab308')" class="h-8 rounded-lg bg-yellow-500 hover:opacity-80 transition-opacity border border-yellow-300/40"></button>
+                        <button onclick="setTheme('orange', 'Orange Cyber', '#f97316')" class="h-8 rounded-lg bg-orange-500 hover:opacity-80 transition-opacity border border-orange-300/40"></button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CENTRE : L'Orbe interactive AEGIS -->
+        <section id="orbSection" class="lg:col-span-6 flex flex-col items-center justify-center h-full relative my-6 lg:my-0">
+            
+            <div id="orbContainer" class="orb-container cursor-pointer" onclick="toggleSpeech()">
+                <div class="wave-ring"></div>
+                <div class="orb-ring-2"></div>
+                <div class="orb-ring-1"></div>
+                <div class="orb-core"></div>
+            </div>
+
+            <!-- Sous-titre vocal / Transcription dynamique -->
+            <div class="mt-6 text-center max-w-lg px-4">
+                <p id="speechStatus" class="font-orbitron text-xs tracking-widest text-slate-400 uppercase mb-1">
+                    Touche l'orbe ou dis <span class="text-blue-400 font-bold">"AEGIS"</span>
+                </p>
+                <div id="transcriptBox" class="min-h-[48px] glass-panel px-6 py-3 rounded-2xl flex items-center justify-center border border-slate-700/50">
+                    <p id="transcriptText" class="text-sm md:text-base font-medium text-slate-200 italic">
+                        "En attente d'ordres..."
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- PANNEAU DROIT : Journal des tâches & Sécurité -->
+        <section class="lg:col-span-3 flex flex-col justify-between h-full space-y-4">
+            <div class="glass-panel rounded-2xl p-4 flex-1 flex flex-col h-full max-h-[350px] lg:max-h-full">
+                <h2 class="font-orbitron text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center justify-between">
+                    <span><i class="fa-solid fa-list-check text-blue-400 mr-1"></i> Tâches en cours</span>
+                    <span class="text-[10px] font-mono text-slate-500">HITL HARNESS</span>
+                </h2>
+
+                <!-- Liste des tâches -->
+                <div id="taskList" class="space-y-2 overflow-y-auto flex-1 pr-1 font-mono text-xs">
+                    <!-- Les tâches sont injectées dynamiquement -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- PIED DE PAGE : Commandes Vocales / Aide -->
+    <footer class="w-full glass-panel p-3 rounded-2xl flex flex-wrap justify-between items-center text-xs font-mono text-slate-400 gap-2">
+        <div class="flex items-center space-x-2">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span>Microphone vocal continu : <strong class="text-slate-200">Prêt</strong></span>
+        </div>
+        <div class="flex items-center space-x-4">
+            <span>Essaye : <span class="text-blue-400 font-semibold">"Aegis, passe au violet"</span></span>
+            <span>|</span>
+            <span><span class="text-blue-400 font-semibold">"Jarvis, lance l'audit"</span></span>
+        </div>
+    </footer>
+
+    <!-- LOGIQUE JAVASCRIPT DE L'APPLICATION -->
+    <script>
+        // --- ÉTATS GLOBAUX ---
+        let isListening = false;
+        let isSpeaking = false;
+        let recognition = null;
+        let currentThemeColor = '#3b82f6';
+
+        // Éléments du DOM
+        const orbContainer = document.getElementById('orbContainer');
+        const speechStatus = document.getElementById('speechStatus');
+        const transcriptText = document.getElementById('transcriptText');
+        const micStatusBadge = document.getElementById('micStatusBadge');
+        const micIcon = document.getElementById('micIcon');
+        const micText = document.getElementById('micText');
+        const triggerDetected = document.getElementById('triggerDetected');
+        const colorDot = document.getElementById('colorDot');
+        const colorName = document.getElementById('colorName');
+        const taskList = document.getElementById('taskList');
+        const cpuLoad = document.getElementById('cpuLoad');
+
+        // Tâches de démonstration d'AEGIS
+        const tasks = [
+            { id: 1, name: "Auto-Audit Code Local", status: "EN COURS", tag: "AUTO" },
+            { id: 2, name: "Optimisation de mémoire", status: "TERMINÉ", tag: "SYSTEM" },
+            { id: 3, name: "Suppression fichiers temp", status: "EN ATTENTE", tag: "REQUIERT PERM" }
+        ];
+
+        // Rendu initial des tâches
+        function renderTasks() {
+            taskList.innerHTML = tasks.map(task => {
+                let badgeColor = "bg-blue-950 text-blue-400 border-blue-800";
+                if(task.status === "TERMINÉ") badgeColor = "bg-emerald-950 text-emerald-400 border-emerald-800";
+                if(task.status === "EN ATTENTE") badgeColor = "bg-amber-950 text-amber-400 border-amber-800";
+
+                return `
+                    <div class="bg-slate-950/80 p-2.5 rounded-xl border border-slate-800/80 flex justify-between items-center">
+                        <div class="truncate mr-2">
+                            <span class="text-slate-200 font-semibold block truncate">${task.name}</span>
+                            <span class="text-[10px] text-slate-500">${task.tag}</span>
+                        </div>
+                        <span class="text-[10px] px-2 py-0.5 rounded border font-mono ${badgeColor}">
+                            ${task.status}
+                        </span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Simuler la variation d'utilisation CPU
+        setInterval(() => {
+            const val = Math.floor(Math.random() * 15) + 8;
+            cpuLoad.innerText = `${val}%`;
+        }, 3000);
+
+        // --- GESTION DU THÈME ET DES COULEURS (Changement dynamique) ---
+        const colorPresets = {
+            blue: { name: 'Bleu Standard', hex: '#3b82f6', glow: 'rgba(59, 130, 246, 0.6)' },
+            violet: { name: 'Violet Néon', hex: '#8b5cf6', glow: 'rgba(139, 92, 246, 0.6)' },
+            red: { name: 'Alerte Rouge', hex: '#ef4444', glow: 'rgba(239, 68, 68, 0.6)' },
+            yellow: { name: 'Jaune Solaire', hex: '#eab308', glow: 'rgba(234, 179, 8, 0.6)' },
+            orange: { name: 'Orange Cyber', hex: '#f97316', glow: 'rgba(249, 115, 22, 0.6)' }
+        };
+
+        function setTheme(key, customName, customHex) {
+            let preset = colorPresets[key];
+            if (!preset && customHex) {
+                preset = { name: customName, hex: customHex, glow: customHex + '99' };
+            }
+            if (!preset) return;
+
+            currentThemeColor = preset.hex;
+            document.documentElement.style.setProperty('--theme-color', preset.hex);
+            document.documentElement.style.setProperty('--theme-glow', preset.glow);
+            document.documentElement.style.setProperty('--theme-glow-strong', preset.hex);
+
+            colorDot.style.backgroundColor = preset.hex;
+            colorName.innerText = preset.name;
+            colorName.style.color = preset.hex;
+        }
+
+        // --- MOTEUR DE RECONNAISSANCE VOCALE (WEB SPEECH API) ---
+        function initSpeech() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+            if (!SpeechRecognition) {
+                transcriptText.innerText = "La reconnaissance vocale n'est pas supportée par ce navigateur sur iPad. Utilise Safari.";
+                return;
+            }
+
+            recognition = new SpeechRecognition();
+            recognition.lang = 'fr-FR';
+            recognition.continuous = true;
+            recognition.interimResults = true;
+
+            recognition.onstart = () => {
+                isListening = true;
+                updateMicUI(true);
+            };
+
+            recognition.onend = () => {
+                // Relance automatique pour maintenir l'écoute en continu sur l'iPad
+                if (isListening) {
+                    try { recognition.start(); } catch(e){}
+                } else {
+                    updateMicUI(false);
+                }
+            };
+
+            recognition.onerror = (event) => {
+                console.log("Speech Error: ", event.error);
+                if(event.error === 'not-allowed') {
+                    updateMicUI(false);
+                    transcriptText.innerText = "Accès au micro refusé. Veuillez autoriser le micro dans Safari.";
+                }
+            };
+
+            recognition.onresult = (event) => {
+                let interimTranscript = '';
+                let finalTranscript = '';
+
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        finalTranscript += event.results[i][0].transcript;
+                    } else {
+                        interimTranscript += event.results[i][0].transcript;
+                    }
+                }
+
+                const textToDisplay = finalTranscript || interimTranscript;
+                if (textToDisplay.trim()) {
+                    transcriptText.innerText = `"${textToDisplay}"`;
+                    processVoiceCommand(textToDisplay.toLowerCase());
+                }
+            };
+        }
+
+        // Analyse des ordres vocaux avec déclencheur "Aegis" ou "Jarvis"
+        function processVoiceCommand(text) {
+            const hasTrigger = text.includes("aegis") || text.includes("jarvis") || text.includes("égis");
+
+            if (hasTrigger) {
+                const triggerName = text.includes("jarvis") ? "JARVIS" : "AEGIS";
+                triggerDetected.innerText = triggerName;
+                
+                // Activer l'effet visuel sur l'orbe
+                orbContainer.classList.add('listening');
+
+                // Traitement des couleurs
+                if (text.includes("bleu")) {
+                    setTheme('blue');
+                    speak("Mode bleu activé Commandant.");
+                } else if (text.includes("violet")) {
+                    setTheme('violet');
+                    speak("Passage au spectre violet.");
+                } else if (text.includes("rouge")) {
+                    setTheme('red');
+                    speak("Alerte rouge. Protocole de sécurité engagé.");
+                } else if (text.includes("jaune")) {
+                    setTheme('yellow');
+                    speak("Couleur jaune solaire appliquée.");
+                } else if (text.includes("orange")) {
+                    setTheme('orange');
+                    speak("Interface configurée sur la teinte orange.");
+                } else if (text.includes("audit") || text.includes("analyse")) {
+                    speak("Lancement de l'auto-audit du code local.");
+                    tasks[0].status = "EN COURS";
+                    renderTasks();
+                } else if (text.includes("statut") || text.includes("rapport")) {
+                    speak("Tous les systèmes AEGIS sont opérationnels.");
+                }
+            }
+        }
+
+        // --- SYNTHÈSE VOCALE (AEGIS RÉPOND PAR LA VOIX) ---
+        function speak(message) {
+            if ('speechSynthesis' in window) {
+                // Arrêter les paroles en cours
+                window.speechSynthesis.cancel();
+
+                const utterance = new SpeechSynthesisUtterance(message);
+                utterance.lang = 'fr-FR';
+                utterance.pitch = 0.9; // Voix légèrement plus grave style Jarvis
+                utterance.rate = 1.0;
+
+                utterance.onstart = () => {
+                    isSpeaking = true;
+                    orbContainer.classList.add('speaking');
+                    speechStatus.innerText = "AEGIS PARLE...";
+                };
+
+                utterance.onend = () => {
+                    isSpeaking = false;
+                    orbContainer.classList.remove('speaking');
+                    orbContainer.classList.remove('listening');
+                    speechStatus.innerHTML = 'Dis <span class="text-blue-400 font-bold">"AEGIS"</span> pour donner un ordre';
+                };
+
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        // Basculer l'écoute au toucher sur iPad
+        function toggleSpeech() {
+            if (!recognition) initSpeech();
+
+            if (!isListening) {
+                try {
+                    recognition.start();
+                    isListening = true;
+                    speak("AEGIS à votre écoute, Commandant.");
+                } catch(e) {
+                    console.log(e);
+                }
+            } else {
+                speak("Système en veille.");
+                isListening = false;
+                try { recognition.stop(); } catch(e){}
+            }
+        }
+
+        // Mise à jour de l'interface du microphone
+        function updateMicUI(active) {
+            if (active) {
+                micStatusBadge.classList.remove('bg-slate-900/80');
+                micStatusBadge.classList.add('bg-emerald-950', 'border-emerald-700');
+                micIcon.className = "fa-solid fa-microphone text-emerald-400 animate-pulse";
+                micText.innerText = "ÉCOUTE ACTIVE";
+                micText.className = "text-emerald-400 font-semibold";
+            } else {
+                micStatusBadge.classList.remove('bg-emerald-950', 'border-emerald-700');
+                micStatusBadge.classList.add('bg-slate-900/80');
+                micIcon.className = "fa-solid fa-microphone-slash text-rose-500";
+                micText.innerText = "INACTIF";
+                micText.className = "text-rose-400 font-semibold";
+            }
+        }
+
+        // Démarrage initial au chargement de la page
+        window.onload = () => {
+            renderTasks();
+            initSpeech();
+        };
+    </script>
+</body>
+</html>
